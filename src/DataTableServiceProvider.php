@@ -14,7 +14,7 @@ class DataTableServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'datatable');
 
         // Register Livewire component
-        Livewire::component('datatable', DataTableComponent::class);
+        Livewire::component('tallforge.datatable', DataTableComponent::class);
 
         // Publish config
         $this->publishes([
