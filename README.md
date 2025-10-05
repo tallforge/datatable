@@ -29,8 +29,5 @@ php artisan vendor:publish --tag=datatable-views
 
 ### Usage
 ```php
-<livewire:tallforge.datatable
-    :model="\App\Models\User::class"
-    theme="tailwind"
-/>
+<livewire:tallforge.datatable :model="\App\Models\User::class" />
 ```
