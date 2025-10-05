@@ -3,7 +3,7 @@
 namespace TallForge\DataTable;
 
 use Illuminate\Support\ServiceProvider;
-use IamIlyasKazi\LivewireDataTable\Components\DataTableComponent;
+use TallForge\DataTable\Components\DataTableComponent;
 use Livewire\Livewire;
 
 class DataTableServiceProvider extends ServiceProvider
@@ -14,17 +14,17 @@ class DataTableServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'datatable');
 
         // Register Livewire component
-        Livewire::component('data-table-component', DataTableComponent::class);
+        Livewire::component('tallforge.datatable', DataTableComponent::class);
 
         // Publish config
         $this->publishes([
             __DIR__ . '/../config/datatable.php' => config_path('datatable.php'),
-        ], 'datatable-config');
+        ], 'tallforge-datatable-config');
 
         // Publish views for customization
         $this->publishes([
-            __DIR__ . '/../resources/views' => resource_path('views/vendor/datatable'),
-        ], 'datatable-views');
+            __DIR__ . '/../resources/views' => resource_path('views/vendor/tallforge/datatable'),
+        ], 'tallforge-datatable-views');
     }
 
     public function register(): void
