@@ -1,11 +1,11 @@
 <?php
 
-namespace IamIlyasKazi\LivewireDataTable\Components;
+namespace TallForge\DataTable\Components;
 
 use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 use Livewire\WithPagination;
-use IamIlyasKazi\LivewireDataTable\Traits\WithColumnFormatter;
+use TallForge\DataTable\Traits\WithColumnFormatter;
 
 class DataTableComponent extends Component
 {

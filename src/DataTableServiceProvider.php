@@ -1,12 +1,12 @@
 <?php
 
-namespace IamIlyasKazi\LivewireDataTable;
+namespace TallForge\DataTable;
 
 use Illuminate\Support\ServiceProvider;
 use IamIlyasKazi\LivewireDataTable\Components\DataTableComponent;
 use Livewire\Livewire;
 
-class LivewireDataTableServiceProvider extends ServiceProvider
+class DataTableServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {

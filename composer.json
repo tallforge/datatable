@@ -1,24 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "iamilyaskazi/livewire-datatable",
-    "description": "A pure Livewire DataTable package with search, filters, pagination and load more support.",
+    "name": "tallforge/datatable",
+    "description": "A modern Livewire DataTable package built for Laravel",
     "keywords": [
         "package",
         "laravel",
-        "livewire"
+        "livewire",
+        "tallstack"
     ],
     "type": "library",
     "license": "MIT",
     "authors": [
         {
             "name": "Ilyas Kazi",
-            "email": "ilyaskazi@gmail.com",
             "role": "Developer"
         }
     ],
-    "support": {
-        "email": "ilyaskazi@gmail.com"
-    },
     "require": {
         "php": ">=8.2",
         "laravel/framework": "^11.0",
@@ -31,7 +28,7 @@
     },
     "autoload": {
         "psr-4": {
-            "IamIlyasKazi\\LivewireDataTable\\": "src/"
+            "TallForge\\DataTable\\": "src/"
         }
     },
     "minimum-stability": "dev",
@@ -39,7 +36,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "IamIlyasKazi\\LivewireDataTable\\LivewireDataTableServiceProvider"
+                "TallForge\\DataTable\\DataTableServiceProvider"
             ]
         }
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace IamIlyasKazi\LivewireDataTable\Traits;
+namespace TallForge\DataTable\Traits;
 
 trait WithColumnFormatter
 {
