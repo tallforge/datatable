@@ -8,6 +8,14 @@ use TallForge\DataTable\Components\DataTableComponent;
 
 class DataTableServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/datatable.php',
+            'tallforge.datatable'
+        );
+    }
+
     public function boot(): void
     {
         // Load package views
@@ -25,13 +33,5 @@ class DataTableServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../resources/views' => resource_path('views/vendor/tallforge/datatable'),
         ], 'tallforge-datatable-views');
-    }
-
-    public function register(): void
-    {
-        $this->mergeConfigFrom(
-            __DIR__ . '/../config/datatable.php',
-            'tallforge.datatable'
-        );
     }
 }

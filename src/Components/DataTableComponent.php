@@ -73,20 +73,20 @@ class DataTableComponent extends Component
         $this->statusColumns = $statusColumns ?? [];
 
         $this->filters = $filters;
-        $this->theme = $theme ?? config('datatable.theme');
+        $this->theme = $theme ?? config('tallforge.datatable.theme');
 
         $this->sortField = $sortField;
         $this->sortDirection = $sortDirection;
 
-        $this->paginationMode = $paginationMode ?? config('datatable.pagination_mode');
-        $this->perPageOptions = $perPageOptions ?? config('datatable.paginations.' . $this->paginationMode . '.per_page_options');
-        $this->perPage = config('datatable.paginations.' . $this->paginationMode . '.per_page');
+        $this->paginationMode = $paginationMode ?? config('tallforge.datatable.pagination_mode');
+        $this->perPageOptions = $perPageOptions ?? config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page_options');
+        $this->perPage = config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page');
 
         $this->columnLabels = $columnLabels;
-        $this->showSearch = $showSearch ?? config('datatable.search.show');
-        $this->searchPlaceholder = $searchPlaceholder ?? config('datatable.search.placeholder');
-        $this->showReset = $showReset ?? config('datatable.reset.show');
-        $this->resetLabel = $resetLabel ?? config('datatable.reset.label');
+        $this->showSearch = $showSearch ?? config('tallforge.datatable.search.show');
+        $this->searchPlaceholder = $searchPlaceholder ?? config('tallforge.datatable.search.placeholder');
+        $this->showReset = $showReset ?? config('tallforge.datatable.reset.show');
+        $this->resetLabel = $resetLabel ?? config('tallforge.datatable.reset.label');
 
         $this->rowActions = $rowActions ?? [];
         $this->rowActionType = $rowActionType ?? 'buttons';
@@ -235,7 +235,7 @@ class DataTableComponent extends Component
             'limit',
         ]);
 
-        $this->perPage = config('datatable.paginations.' . $this->paginationMode . '.per_page');
+        $this->perPage = config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page');
         $this->limit = $this->perPage;
         $this->sortDirection = 'asc';
         $this->resetPage();
@@ -285,7 +285,7 @@ class DataTableComponent extends Component
 
         // Dynamically load theme view
         return view("datatable::themes.{$this->theme}.table", [
-            'table' => config('datatable.themes.' . $this->theme),
+            'table' => config('tallforge.datatable.themes.' . $this->theme),
             'rows' => $rows,
         ]);
     }
