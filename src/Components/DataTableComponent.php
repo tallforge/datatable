@@ -11,88 +11,93 @@ class DataTableComponent extends Component
 {
     use WithPagination, WithColumnFormatter;
 
-    public $model;
-    public $columns = [];
-    public $filters = [];
-    public $search = '';
-    public $perPage;
-    public $perPageOptions = [];
-    public $selectedFilters = [];
     public $theme;
-    public $paginationMode;
-    public $limit;
-    public $sortField;
-    public $sortDirection = 'asc';
-    public $columnLabels = [];
+    public $model;
 
-    public $showSearch;
-    public $searchPlaceholder;
-    public $showReset;
-    public $resetLabel;
-
-    public $availableColumns = [];
+    public $columns = [];
     public $selectedColumns = [];
+    public $columnLabels = [];
     public $booleanColumns = [];
     public $booleanColumnsState = [];
     public $alignColumns = [];
     public $statusColumns = [];
+    
+    public $search = '';
+    public $showSearch;
+    public $searchPlaceholder;
+
+    public $filters = [];
+    public $selectedFilters = [];
+
+    public $paginationMode;
+    public $limit;
+    public $perPage;
+    public $perPageOptions = [];
+    
+    public $sortField;
+    public $sortDirection = 'asc';
+    
+    public $showReset;
+    public $resetLabel;
 
     public $rowActions = [];
     public $rowActionType = 'buttons'; // options: 'buttons' | 'dropdown'
 
 
     public function mount(
-        $model,
-        $columns = [],
-        $filters = [],
         $theme = null,
-        $sortField = null,
-        $sortDirection = 'asc',
-        $paginationMode = null,
-        $perPageOptions = null,
-        $columnLabels = [],
-        $showSearch = null,
-        $searchPlaceholder = null,
-        $showReset = null,
-        $resetLabel = null,
-        $availableColumns = [],
+        $model = null,
+        
+        $columns = [],
         $selectedColumns = [],
+        $columnLabels = [],
         $booleanColumns = [],
         $alignColumns = [],
         $statusColumns = [],
+
+        $showSearch = null,
+        $searchPlaceholder = null,
+        $filters = [],
+
+        $paginationMode = null,
+        $perPageOptions = null,
+
+        $sortField = null,
+        $sortDirection = 'asc',
+        
+        $showReset = null,
+        $resetLabel = null,
+        
         $rowActions = [],
         $rowActionType = null
     ) {
+        $this->theme = $theme ?? config('tallforge.datatable.theme');
         $this->model = $model;
 
-        $this->columns = $columns;  // legacy usage
-        $this->availableColumns = $availableColumns ?: $columns;
+        $this->columns = $columns;
         $this->selectedColumns = $selectedColumns ?: $columns;
+        $this->columnLabels = $columnLabels;
         $this->booleanColumns = $booleanColumns ?? [];
         $this->alignColumns = $alignColumns ?? [];
         $this->statusColumns = $statusColumns ?? [];
 
+        $this->showSearch = $showSearch ?? config('tallforge.datatable.search.show');
+        $this->searchPlaceholder = $searchPlaceholder ?? config('tallforge.datatable.search.placeholder');
         $this->filters = $filters;
-        $this->theme = $theme ?? config('tallforge.datatable.theme');
-
-        $this->sortField = $sortField;
-        $this->sortDirection = $sortDirection;
 
         $this->paginationMode = $paginationMode ?? config('tallforge.datatable.pagination_mode');
         $this->perPageOptions = $perPageOptions ?? config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page_options');
         $this->perPage = config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page');
-
-        $this->columnLabels = $columnLabels;
-        $this->showSearch = $showSearch ?? config('tallforge.datatable.search.show');
-        $this->searchPlaceholder = $searchPlaceholder ?? config('tallforge.datatable.search.placeholder');
+        $this->limit = $this->perPage;  // For load more mode
+        
+        $this->sortField = $sortField;
+        $this->sortDirection = $sortDirection;
+        
         $this->showReset = $showReset ?? config('tallforge.datatable.reset.show');
         $this->resetLabel = $resetLabel ?? config('tallforge.datatable.reset.label');
 
         $this->rowActions = $rowActions ?? [];
         $this->rowActionType = $rowActionType ?? 'buttons';
-
-        // For load more mode
-        $this->limit = $this->perPage;
 
         $this->loadDynamicFilters();
     }

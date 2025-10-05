@@ -40,7 +40,7 @@ php artisan vendor:publish --tag=datatable-views
 | Option               | Type   | Description                         |
 | -------------------- | ------ | ----------------------------------- |
 | `:model`             | string | Eloquent model class                |
-| `:available-columns` | array  | All available columns               |
+| `:columns`           | array  | All available columns               |
 | `:selected-columns`  | array  | Columns currently displayed         |
 | `:boolean-columns`   | array  | Configurable boolean toggle columns |
 | `:status-columns`    | array  | Map of statuses → badge colors      |

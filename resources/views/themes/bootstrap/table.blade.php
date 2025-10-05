@@ -1,4 +1,6 @@
 <div>
+
+    <!-- ToolBar -->
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Search -->
@@ -13,7 +15,7 @@
                 Columns
             </button>
             <ul class="dropdown-menu p-3">
-                @foreach($availableColumns as $col)
+                @foreach($columns as $col)
                     <li>
                         <label class="form-check-label">
                             <input type="checkbox" class="form-check-input" wire:model.live="selectedColumns"
@@ -44,7 +46,7 @@
         @endif
     </div>
 
-    <!-- Filters -->
+    <!-- Filters ToolBar -->
     <div class="mb-3 d-flex gap-2">
         @foreach($filters as $key => $options)
             <select wire:model.live="selectedFilters.{{ $key }}" class="form-select">
@@ -60,7 +62,7 @@
     <table class="{{ $table['class'] }}">
         <thead>
             <tr>
-                @foreach($availableColumns as $col)
+                @foreach($columns as $col)
                     @if(in_array($col, $selectedColumns))
                         <th wire:click="sortBy('{{ $col }}')" style="cursor:pointer;" wire:key='thCol-{{ $loop->index }}'>
                             {{ $this->getColumnLabel($col) }}
@@ -78,7 +80,7 @@
         <tbody>
             @forelse($rows as $row)
                 <tr wire:key='row-{{ $loop->index }}'>
-                    @foreach($availableColumns as $col)
+                    @foreach($columns as $col)
                         @if(in_array($col, $selectedColumns))
                             <td class="text-{{ $this->getAlignColumn($col) }}"
                                 wire:key='rowCol-{{ $loop->parent->index }}-{{ $loop->index }}'>
@@ -109,8 +111,8 @@
                                             <label class="form-check-label" style="cursor: pointer;"
                                                 wire:click.prevent="confirmToggle({{ $row->id }}, '{{ $col }}')">
                                                 {{ $isTrue
-                                    ? ($config['label_true'] ?? 'Yes')
-                                    : ($config['label_false'] ?? 'No') }}
+                                                    ? ($config['label_true'] ?? 'Yes')
+                                                    : ($config['label_false'] ?? 'No') }}
                                             </label>
                                         </div>
                                     </div>
@@ -132,6 +134,7 @@
                                     </button>
                                 @endforeach
                             @else
+                                {{-- ($rowActionType === 'dropdown') --}}
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-secondary dropdown-toggle" type="button"
                                         data-bs-toggle="dropdown">

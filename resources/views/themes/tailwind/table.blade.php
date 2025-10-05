@@ -1,4 +1,6 @@
 <div class="p-4">
+
+    <!-- ToolBar -->
     <div class="flex justify-between items-center mb-4">
 
         <!-- Search -->
@@ -16,7 +18,7 @@
                     Columns
                 </button>
                 <div class="absolute mt-2 bg-white border rounded shadow p-3 z-10">
-                    @foreach($availableColumns as $col)
+                    @foreach($columns as $col)
                         <label class="flex items-center space-x-2">
                             <input type="checkbox" 
                                 wire:model.live="selectedColumns" 
@@ -32,7 +34,7 @@
             <!-- Per Page Options -->
             @if($paginationMode === 'pagination')
                 <div>
-                    <select wire:model="perPage"
+                    <select wire:model.live="perPage"
                         class="rounded-md border-gray-300 shadow-sm focus:ring focus:ring-indigo-200">
                         @foreach($perPageOptions as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
@@ -50,7 +52,7 @@
         </div>
     </div>
 
-    <!-- Filters -->
+    <!-- Filters ToolBar -->
     <div class="flex gap-3 mb-4">
         @foreach($filters as $key => $options)
             <select wire:model="selectedFilters.{{ $key }}"
@@ -68,9 +70,9 @@
         <table class="{{ $table['class'] }}">
             <thead class="bg-gray-100">
                 <tr>
-                    @foreach($availableColumns as $col)
+                    @foreach($columns as $col)
                         @if(in_array($col, $selectedColumns))
-                            <th wire:click="sortBy('{{ $col }}')"
+                            <th wire:click="sortBy('{{ $col }}')" style="cursor:pointer;" wire:key='thCol-{{ $loop->index }}'
                                 class="px-4 py-2 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider cursor-pointer select-none">
                                 {{ $this->getColumnLabel($col) }}
                                 @if($sortField === $col)
@@ -86,10 +88,12 @@
             </thead>
             <tbody class="divide-y divide-gray-200">
                 @forelse($rows as $row)
-                    <tr class="hover:bg-gray-50">
-                        @foreach($availableColumns as $col)
+                    <tr wire:key='row-{{ $loop->index }}' class="hover:bg-gray-50">
+                        @foreach($columns as $col)
                             @if(in_array($col, $selectedColumns))
-                                <td class="px-4 py-2 text-sm text-gray-700 text-{{ $this->getAlignColumn($col) }}">
+                                <td class="px-4 py-2 text-sm text-gray-700 text-{{ $this->getAlignColumn($col) }}"
+                                    wire:key='rowCol-{{ $loop->parent->index }}-{{ $loop->index }}'>
+
                                     @if(isset($statusColumns[$col]))
                                         @php
                                             $statusValue = $row->$col;
@@ -111,18 +115,14 @@
                                             $falseValue = $config['false'] ?? 0;
                                             $isTrue = $row->$col == $trueValue;
                                         @endphp
-
                                         <div class="flex justify-{{ $this->getAlignColumn($col) }}">
-                                            <label class="inline-flex items-center cursor-pointer" 
-                                                x-data
-                                                x-on:click.prevent="
-                                                    if (confirm('Are you sure you want to change this?')) {
-                                                        $wire.toggleBoolean({{ $row->id }}, '{{ $col }}')
-                                                    }
-                                                ">
-                                                <input type="checkbox"
-                                                    class="sr-only peer"
-                                                    @checked($isTrue)>
+                                            <label class="inline-flex items-center cursor-pointer"
+                                                wire:click.prevent="confirmToggle({{ $row->id }}, '{{ $col }}')">
+                                                <input type="checkbox" wire:key='cbToggle-{{ $loop->parent->index }}-{{ $loop->index }}'
+                                                    wire:click.prevent="confirmToggle({{ $row->id }}, '{{ $col }}')"
+                                                    wire:loading.attr="disabled"
+                                                    wire:model.live='booleanColumnsState.{{ $row->id }}.{{ $col }}'
+                                                    class="sr-only peer" @checked($isTrue)>
                                                 <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-green-500 transition"></div>
                                                 <span class="ml-2">
                                                     {{ $isTrue ? ($config['label_true'] ?? 'Yes') : ($config['label_false'] ?? 'No') }}
@@ -157,9 +157,9 @@
                                             class="absolute right-0 mt-2 w-28 bg-white border rounded-md shadow-lg z-10">
                                             @foreach($rowActions as $config)
                                                 <a href="#"
-                                                class="block px-3 py-1 text-sm text-gray-700 hover:bg-gray-100"
-                                                wire:click.prevent="{{ $config['method'] }}({{ $row->id }})"
-                                                x-on:click="open = false">
+                                                    class="block px-3 py-1 text-sm text-gray-700 hover:bg-gray-100"
+                                                    wire:click.prevent="{{ $config['method'] }}({{ $row->id }})"
+                                                    x-on:click="open = false">
                                                     {{ $config['label'] }}
                                                 </a>
                                             @endforeach
@@ -195,7 +195,7 @@
     </div>
 </div>
 
-{{-- <script>
+<script>
     document.addEventListener('livewire:init', () => {
         Livewire.on('confirm-toggle', ({ id, column }) => {
             if (confirm(`Are you sure you want to change ${column} for record ID ${id}?`)) {
@@ -203,4 +203,4 @@
             }
         });
     });
-</script> --}}
+</script>
