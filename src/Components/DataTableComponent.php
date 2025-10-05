@@ -76,7 +76,7 @@ class DataTableComponent extends Component
         $this->model = $model;
 
         $this->columns = $columns ?: $this->resolveColumns();
-        $this->selectedColumns = $selectedColumns ?: $columns;
+        $this->selectedColumns = $selectedColumns ?: $this->columns;
         $this->columnLabels = $columnLabels;
         $this->booleanColumns = $booleanColumns ?? [];
         $this->alignColumns = $alignColumns ?? [];
@@ -103,6 +103,13 @@ class DataTableComponent extends Component
         $this->loadDynamicFilters();
     }
 
+    /**
+     * Automatically resolve columns from the model schema
+     * Respects model's $hidden and $guarded properties
+     * Can be customized by overriding getCustomHiddenColumns()
+     * 
+     * @return array
+     */
     protected function resolveColumns(): array
     {
         // If columns are manually defined, skip auto-detection
@@ -128,25 +135,64 @@ class DataTableComponent extends Component
             $columns = [];
         }
 
-        // Optionally hide timestamps or soft delete columns
-        $hidden = ['updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by'];
+        // Get hidden columns from multiple sources
+        $hidden = $this->getHiddenColumns($modelInstance);
 
         // Construct valid columns array
         $resolvedColumns = collect($columns)
             ->reject(fn($col) => in_array($col, $hidden))
             ->map(function ($col) {
                 $colString = is_string($col) ? $col : (is_callable($col) ? '' : strval($col));
-                return [
-                    'label' => \Illuminate\Support\Str::headline($colString),
-                    'field' => $col,
-                    'sortable' => true,
-                    'searchable' => true,
-                ];
+                return $colString;
             })
             ->values()
             ->toArray();
 
         return $resolvedColumns;
+    }
+
+    /**
+     * Get hidden columns from various sources
+     * 
+     * @return array
+     */
+    protected function getHiddenColumns($modelInstance): array
+    {
+        // Default hidden columns
+        $defaultHidden = [
+            'updated_at', 
+            'deleted_at', 
+            'created_by', 
+            'updated_by', 
+            'deleted_by',
+            'password',
+            'remember_token',
+            'email_verified_at'
+        ];
+
+        // Get hidden from model's $hidden property
+        $modelHidden = property_exists($modelInstance, 'hidden') ? $modelInstance->getHidden() : [];
+
+        // Get hidden from model's $guarded property (often contains sensitive fields)
+        $modelGuarded = property_exists($modelInstance, 'guarded') && $modelInstance->getGuarded() !== ['*'] 
+            ? $modelInstance->getGuarded() 
+            : [];
+
+        // Allow component-level override
+        $componentHidden = $this->getCustomHiddenColumns();
+
+        // Merge all hidden columns
+        return array_unique(array_merge($defaultHidden, $modelHidden, $modelGuarded, $componentHidden));
+    }
+
+    /**
+     * Override this method in child components to customize hidden columns
+     * 
+     * @return array
+     */
+    protected function getCustomHiddenColumns(): array
+    {
+        return [];
     }
 
     /**
