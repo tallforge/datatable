@@ -1,13 +1,16 @@
-# Livewire DataTable
+# TallForge DataTable
 
-A pure **Laravel Livewire DataTable package** (no jQuery, no external JS).  
-Supports:
+> A modern, dependency-free Livewire DataTable for Laravel — forged for the TALL stack.
 
-- Search
-- Filters
-- Sorting
-- Pagination
-- Load More mode
+---
+
+### Features
+- Search, filters, reset and sortable
+- Pagination or load-more mode
+- Boolean toggles with confirmation
+- Status badges
+- Column selector and alignment
+- Row actions (buttons or dropdowns)
 - Bootstrap & Tailwind themes
 
 ---
@@ -15,7 +18,7 @@ Supports:
 ## Installation
 
 ```bash
-composer require iamilyaskazi/livewire-datatable
+composer require tallforge/datatable
 ```
 
 ### Publish config & views:
@@ -26,12 +29,8 @@ php artisan vendor:publish --tag=datatable-views
 
 ### Usage
 ```php
-<livewire:data-table
+<livewire:tallforge.datatable
     :model="\App\Models\User::class"
-    :columns="['id','name','email']"
-    :filters="['status'=>['active','inactive']]"
     theme="tailwind"
-    pagination-mode="load-more"
 />
 ```
-
