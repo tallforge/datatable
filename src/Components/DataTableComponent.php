@@ -5,11 +5,12 @@ namespace TallForge\DataTable\Components;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 use Livewire\WithPagination;
+use TallForge\DataTable\Traits\WithBulkActions;
 use TallForge\DataTable\Traits\WithColumnFormatter;
 
 class DataTableComponent extends Component
 {
-    use WithPagination, WithColumnFormatter;
+    use WithPagination, WithBulkActions, WithColumnFormatter;
 
     public ?string $theme = null;
     public ?string $model = null;
