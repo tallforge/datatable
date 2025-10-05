@@ -21,8 +21,10 @@ class DataTableServiceProvider extends ServiceProvider
         // Load package views
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'datatable');
 
-        // Register Livewire component
-        Livewire::component('tallforge.datatable', DataTableComponent::class);
+        // Register Livewire component (with safety check)
+        if (class_exists(Livewire::class)) {
+            Livewire::component('tallforge.datatable', DataTableComponent::class);
+        }
 
         // Publish config
         $this->publishes([
@@ -33,5 +35,11 @@ class DataTableServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../resources/views' => resource_path('views/vendor/tallforge/datatable'),
         ], 'tallforge-datatable-views');
+
+        // Publish all assets at once (optional but convenient)
+        $this->publishes([
+            __DIR__ . '/../config/datatable.php' => config_path('tallforge/datatable.php'),
+            __DIR__ . '/../resources/views' => resource_path('views/vendor/tallforge/datatable'),
+        ], 'tallforge-datatable');
     }
 }
