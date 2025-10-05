@@ -12,7 +12,7 @@ class DataTableComponent extends Component
     use WithPagination, WithColumnFormatter;
 
     public $theme;
-    public $model;
+    public ?string $model = null;
 
     public $columns = [];
     public $selectedColumns = [];
@@ -71,10 +71,11 @@ class DataTableComponent extends Component
         $rowActions = [],
         $rowActionType = null
     ) {
+        
         $this->theme = $theme ?? config('tallforge.datatable.theme');
         $this->model = $model;
 
-        $this->columns = $columns;
+        $this->columns = $columns ?: $this->resolveColumns();
         $this->selectedColumns = $selectedColumns ?: $columns;
         $this->columnLabels = $columnLabels;
         $this->booleanColumns = $booleanColumns ?? [];
@@ -100,6 +101,52 @@ class DataTableComponent extends Component
         $this->rowActionType = $rowActionType ?? 'buttons';
 
         $this->loadDynamicFilters();
+    }
+
+    protected function resolveColumns(): array
+    {
+        // If columns are manually defined, skip auto-detection
+        if (! empty($this->columns)) {
+            return $this->columns;
+        }
+
+        // If no model is defined, nothing to resolve
+        if (empty($this->model) || ! class_exists($this->model)) {
+            return [];
+        }
+
+        /** @var \Illuminate\Database\Eloquent\Model $modelInstance */
+        $modelInstance = new $this->model;
+
+        // Get table name from model
+        $table = $modelInstance->getTable();
+
+        // Fetch columns from schema
+        try {
+            $columns = Schema::getColumnListing($table);
+        } catch (\Throwable $e) {
+            $columns = [];
+        }
+
+        // Optionally hide timestamps or soft delete columns
+        $hidden = ['updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by'];
+
+        // Construct valid columns array
+        $resolvedColumns = collect($columns)
+            ->reject(fn($col) => in_array($col, $hidden))
+            ->map(function ($col) {
+                $colString = is_string($col) ? $col : (is_callable($col) ? '' : strval($col));
+                return [
+                    'label' => \Illuminate\Support\Str::headline($colString),
+                    'field' => $col,
+                    'sortable' => true,
+                    'searchable' => true,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        return $resolvedColumns;
     }
 
     /**
