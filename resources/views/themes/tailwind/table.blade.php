@@ -65,11 +65,38 @@
         @endforeach
     </div>
 
+    <!-- Bulk Actions Toolbar -->
+    @if($this->hasSelection())
+        <div class="flex items-center justify-between mb-3 p-2 bg-gray-50 border border-gray-200 rounded-lg">
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" wire:model.live="selectAll" class="rounded border-gray-300">
+                <span class="text-sm text-gray-600">
+                    {{ count($selectedRows) }} selected
+                </span>
+            </div>
+
+            <div>
+                <select wire:change="performBulkAction($event.target.value)"
+                    class="rounded-md border-gray-300 shadow-sm text-sm focus:ring focus:ring-indigo-200">
+                    <option value="">Bulk Actions</option>
+                    @foreach($this->bulkActions() as $key => $action)
+                        <option value="{{ $key }}">
+                            {{ is_array($action) ? $action['label'] : ucfirst($key) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    @endif
+
     <!-- Table -->
     <div class="overflow-x-auto">
         <table class="{{ $table['class'] }}">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="px-3 py-2 w-6">
+                        <input type="checkbox" wire:model.live="selectAll" class="rounded border-gray-300">
+                    </th>
                     @foreach($columns as $col)
                         @if(in_array($col, $selectedColumns))
                             <th wire:click="sortBy('{{ $col }}')" style="cursor:pointer;" wire:key='thCol-{{ $loop->index }}'
@@ -89,6 +116,13 @@
             <tbody class="divide-y divide-gray-200">
                 @forelse($rows as $row)
                     <tr wire:key='row-{{ $loop->index }}' class="hover:bg-gray-50">
+                        <td class="px-3 py-2 text-center">
+                            <input type="checkbox"
+                                wire:model.live="selectedRows"
+                                aria-label="Select row"
+                                value="{{ $row->id }}"
+                                class="rounded border-gray-300">
+                        </td>
                         @foreach($columns as $col)
                             @if(in_array($col, $selectedColumns))
                                 <td class="px-4 py-2 text-sm text-gray-700 text-{{ $this->getAlignColumn($col) }}"

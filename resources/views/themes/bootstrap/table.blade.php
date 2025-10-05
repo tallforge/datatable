@@ -58,10 +58,37 @@
         @endforeach
     </div>
 
+    <!-- Bulk Actions Toolbar -->
+    @if($this->hasSelection())
+        <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light border rounded">
+            <div class="d-flex align-items-center">
+                <input type="checkbox" wire:model.live="selectAll" class="form-check-input me-2">
+                <span class="text-muted small">
+                    {{ count($selectedRows) }} selected
+                </span>
+            </div>
+
+            <div>
+                <select wire:change="performBulkAction($event.target.value)" class="form-select form-select-sm">
+                    <option value="">Bulk Actions</option>
+                    @foreach($this->bulkActions() as $key => $action)
+                        <option value="{{ $key }}">
+                            {{ is_array($action) ? $action['label'] : ucfirst($key) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    @endif
+
+
     <!-- Table -->
     <table class="{{ $table['class'] }}">
         <thead>
             <tr>
+                <th style="width:40px;">
+                    <input type="checkbox" wire:model.live="selectAll" class="form-check-input">
+                </th>
                 @foreach($columns as $col)
                     @if(in_array($col, $selectedColumns))
                         <th wire:click="sortBy('{{ $col }}')" style="cursor:pointer;" wire:key='thCol-{{ $loop->index }}'>
@@ -80,6 +107,13 @@
         <tbody>
             @forelse($rows as $row)
                 <tr wire:key='row-{{ $loop->index }}'>
+                    <td>
+                        <input type="checkbox"
+                            wire:model.live="selectedRows"
+                            aria-label="Select row"
+                            value="{{ $row->id }}"
+                            class="form-check-input">
+                    </td>
                     @foreach($columns as $col)
                         @if(in_array($col, $selectedColumns))
                             <td class="text-{{ $this->getAlignColumn($col) }}"

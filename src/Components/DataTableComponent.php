@@ -11,37 +11,37 @@ class DataTableComponent extends Component
 {
     use WithPagination, WithColumnFormatter;
 
-    public $theme;
+    public ?string $theme = null;
     public ?string $model = null;
 
-    public $columns = [];
-    public $selectedColumns = [];
-    public $columnLabels = [];
-    public $booleanColumns = [];
-    public $booleanColumnsState = [];
-    public $alignColumns = [];
-    public $statusColumns = [];
+    public array $columns = [];
+    public array $selectedColumns = [];
+    public array $columnLabels = [];
+    public array $booleanColumns = [];
+    public array $booleanColumnsState = [];
+    public array $alignColumns = [];
+    public array $statusColumns = [];
     
-    public $search = '';
-    public $showSearch;
-    public $searchPlaceholder;
+    public ?string $search = null;
+    public bool $showSearch = false;
+    public ?string $searchPlaceholder = null;
 
-    public $filters = [];
-    public $selectedFilters = [];
+    public array $filters = [];
+    public array $selectedFilters = [];
 
-    public $paginationMode;
-    public $limit;
-    public $perPage;
-    public $perPageOptions = [];
+    public ?string $paginationMode = null;
+    public int $limit = 0;
+    public int $perPage = 0;
+    public array $perPageOptions = [];
     
     public $sortField;
-    public $sortDirection = 'asc';
-    
-    public $showReset;
-    public $resetLabel;
+    public string $sortDirection = 'asc';
 
-    public $rowActions = [];
-    public $rowActionType = 'buttons'; // options: 'buttons' | 'dropdown'
+    public bool $showReset = false;
+    public ?string $resetLabel = null;
+
+    public array $rowActions = [];
+    public string $rowActionType = 'buttons'; // options: 'buttons' | 'dropdown'
 
 
     public function mount(
@@ -160,6 +160,7 @@ class DataTableComponent extends Component
     {
         // Default hidden columns
         $defaultHidden = [
+            'created_at',
             'updated_at', 
             'deleted_at', 
             'created_by', 
