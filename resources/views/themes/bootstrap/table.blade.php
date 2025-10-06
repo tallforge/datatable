@@ -141,9 +141,13 @@
                                                 wire:click.prevent="confirmToggle({{ $row->id }}, '{{ $col }}')"
                                                 wire:loading.attr="disabled"
                                                 wire:model.live='booleanColumnsState.{{ $row->id }}.{{ $col }}' class="form-check-input"
+                                                data-bs-toggle="modal" data-bs-target="#confirmRowActionModal"
                                                 role="switch" @checked($isTrue)>
+
                                             <label class="form-check-label" style="cursor: pointer;"
-                                                wire:click.prevent="confirmToggle({{ $row->id }}, '{{ $col }}')">
+                                                wire:click.prevent="confirmToggle({{ $row->id }}, '{{ $col }}')"
+                                                wire:key="confirmToggleKey-{{ $loop->index }}"
+                                                data-bs-toggle="modal" data-bs-target="#confirmRowActionModal">
                                                 {{ $isTrue
                                                     ? ($config['label_true'] ?? 'Yes')
                                                     : ($config['label_false'] ?? 'No') }}
@@ -164,13 +168,11 @@
                                 @foreach($rowActions as $config)
                                     <button type="button"
                                             class="btn btn-sm btn-{{ $config['color'] ?? 'primary' }} me-1"
-                                            wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})">
+                                            wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
+                                            wire:key="confirmActionKey-{{ $loop->index }}"
+                                            data-bs-toggle="modal" data-bs-target="#confirmRowActionModal">
                                         {{ $config['label'] }}
                                     </button>
-                                    {{-- <button type="button" class="btn btn-sm btn-{{ $config['color'] ?? 'primary' }} me-1"
-                                        wire:click="{{ $config['method'] }}({{ $row->id }})">
-                                        {{ $config['label'] }}
-                                    </button> --}}
                                 @endforeach
                             @else
                                 {{-- ($rowActionType === 'dropdown') --}}
@@ -184,13 +186,11 @@
                                             <li>
                                                 <a href="#"
                                                     class="dropdown-item"
-                                                    wire:click.prevent="confirmAction('{{ $config['method'] }}', {{ $row->id }})">
+                                                    wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
+                                                    wire:key="confirmActionKey-{{ $loop->index }}"
+                                                    data-bs-toggle="modal" data-bs-target="#confirmRowActionModal">
                                                     {{ $config['label'] }}
                                                 </a>
-                                                {{-- <a href="#" class="dropdown-item"
-                                                    wire:click.prevent="{{ $config['method'] }}({{ $row->id }})">
-                                                    {{ $config['label'] }}
-                                                </a> --}}
                                             </li>
                                         @endforeach
                                     </ul>

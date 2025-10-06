@@ -179,12 +179,6 @@
                                                 wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})">
                                             {{ $config['label'] }}
                                         </button>
-                                        {{-- <button type="button"
-                                                class="px-3 py-1 text-sm font-medium rounded-md text-white
-                                                    bg-{{ $config['color'] ?? 'blue' }}-600 hover:bg-{{ $config['color'] ?? 'blue' }}-700 mr-1"
-                                                wire:click="{{ $config['method'] }}({{ $row->id }})">
-                                            {{ $config['label'] }}
-                                        </button> --}}
                                     @endforeach
                                 @else
                                     <div class="relative inline-block text-left" x-data="{ open: false }">
@@ -202,12 +196,6 @@
                                                     x-on:click="open = false">
                                                     {{ $config['label'] }}
                                                 </a>
-                                                {{-- <a href="#"
-                                                    class="block px-3 py-1 text-sm text-gray-700 hover:bg-gray-100"
-                                                    wire:click.prevent="{{ $config['method'] }}({{ $row->id }})"
-                                                    x-on:click="open = false">
-                                                    {{ $config['label'] }}
-                                                </a> --}}
                                             @endforeach
                                         </div>
                                     </div>
@@ -243,13 +231,3 @@
     <!-- Include Modal Dialog -->
     @includeIf("tallforge.datatable::themes.{$theme}.modal")
 </div>
-
-{{-- <script>
-    document.addEventListener('livewire:init', () => {
-        Livewire.on('confirm-toggle', ({ id, column }) => {
-            if (confirm(`Are you sure you want to change ${column} for record ID ${id}?`)) {
-                Livewire.dispatch('toggle-boolean', { id, column });
-            }
-        });
-    });
-</script> --}}

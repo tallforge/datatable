@@ -22,7 +22,7 @@ class DataTableComponent extends Component
     public array $booleanColumnsState = [];
     public array $alignColumns = [];
     public array $statusColumns = [];
-    
+
     public ?string $search = null;
     public bool $showSearch = false;
     public ?string $searchPlaceholder = null;
@@ -35,7 +35,7 @@ class DataTableComponent extends Component
     public int $limit = 0;
     public int $perPage = 0;
     public array $perPageOptions = [];
-    
+
     public $sortField;
     public string $sortDirection = 'asc';
 
@@ -44,15 +44,17 @@ class DataTableComponent extends Component
 
     public array $rowActions = [];
     public string $rowActionType = 'buttons'; // options: 'buttons' | 'dropdown'
+
     public $confirmingAction = false;
     public $actionToConfirm = null;
     public $confirmingRowId = null;
+    public $confirmingColumn = null;
     public $confirmMessage = null;
 
     public function mount(
         $theme = null,
         $model = null,
-        
+
         $columns = [],
         $selectedColumns = [],
         $columnLabels = [],
@@ -70,14 +72,14 @@ class DataTableComponent extends Component
 
         $sortField = null,
         $sortDirection = 'asc',
-        
+
         $showReset = null,
         $resetLabel = null,
-        
+
         $rowActions = [],
         $rowActionType = null
     ) {
-        
+
         $this->theme = $theme ?? config('tallforge.datatable.theme');
         $this->model = $model;
 
@@ -97,10 +99,10 @@ class DataTableComponent extends Component
         $this->perPageOptions = $perPageOptions ?? config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page_options');
         $this->perPage = config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page');
         $this->limit = $this->perPage;  // For load more mode
-        
+
         $this->sortField = $sortField;
         $this->sortDirection = $sortDirection;
-        
+
         $this->showReset = $showReset ?? config('tallforge.datatable.reset.show');
         $this->resetLabel = $resetLabel ?? config('tallforge.datatable.reset.label');
 
@@ -114,7 +116,7 @@ class DataTableComponent extends Component
      * Automatically resolve columns from the model schema
      * Respects model's $hidden and $guarded properties
      * Can be customized by overriding getCustomHiddenColumns()
-     * 
+     *
      * @return array
      */
     protected function resolveColumns(): array
@@ -160,7 +162,7 @@ class DataTableComponent extends Component
 
     /**
      * Get hidden columns from various sources
-     * 
+     *
      * @return array
      */
     protected function getHiddenColumns($modelInstance): array
@@ -168,10 +170,10 @@ class DataTableComponent extends Component
         // Default hidden columns
         $defaultHidden = [
             'created_at',
-            'updated_at', 
-            'deleted_at', 
-            'created_by', 
-            'updated_by', 
+            'updated_at',
+            'deleted_at',
+            'created_by',
+            'updated_by',
             'deleted_by',
             'password',
             'remember_token',
@@ -182,8 +184,8 @@ class DataTableComponent extends Component
         $modelHidden = property_exists($modelInstance, 'hidden') ? $modelInstance->getHidden() : [];
 
         // Get hidden from model's $guarded property (often contains sensitive fields)
-        $modelGuarded = property_exists($modelInstance, 'guarded') && $modelInstance->getGuarded() !== ['*'] 
-            ? $modelInstance->getGuarded() 
+        $modelGuarded = property_exists($modelInstance, 'guarded') && $modelInstance->getGuarded() !== ['*']
+            ? $modelInstance->getGuarded()
             : [];
 
         // Allow component-level override
@@ -195,7 +197,7 @@ class DataTableComponent extends Component
 
     /**
      * Override this method in child components to customize hidden columns
-     * 
+     *
      * @return array
      */
     protected function getCustomHiddenColumns(): array
@@ -246,40 +248,6 @@ class DataTableComponent extends Component
                     ->toArray();
             }
         }
-    }
-
-    public function confirmToggle($id, $column)
-    {
-        $this->dispatch('confirm-toggle', id: $id, column: $column);
-    }
-
-    #[\Livewire\Attributes\On('toggle-boolean')]
-    public function handleToggleBoolean($id, $column)
-    {
-        $this->toggleBoolean($id, $column);
-    }
-
-    public function toggleBoolean($id, $column)
-    {
-        $config = $this->booleanColumns[$column] ?? null;
-        if (!$config)
-            return;
-
-        $trueValue = $config['true'] ?? 1;
-        $falseValue = $config['false'] ?? 0;
-
-        $model = $this->model::findOrFail($id);
-
-        // Toggle & save
-        $model->$column = ($model->$column == $trueValue) ? $falseValue : $trueValue;
-        $model->save();
-
-        $this->booleanColumnsState[$id][$column] = $model->$column == $trueValue;
-
-        // force re-render
-        $this->resetPage();
-
-        $this->dispatch('notify', "Updated {$column} for ID {$id}");
     }
 
     public function getAlignColumn($col)
@@ -347,6 +315,40 @@ class DataTableComponent extends Component
         $this->resetPage();
     }
 
+    public function confirmToggle($id, $column)
+    {
+        $this->actionToConfirm = 'toggleBoolean';
+        $this->confirmingRowId = $id;
+        $this->confirmingColumn = $column;
+
+        $columnLabel = $this->filterLabels[$column] ?? $this->columnLabels[$column] ?? ucfirst(str_replace('_', ' ', $column));
+        $this->confirmMessage = "Are you sure you want to change {$columnLabel} for this record?";
+        $this->confirmingAction = true;
+    }
+
+    public function toggleBoolean($id)
+    {
+        $config = $this->booleanColumns[$this->confirmingColumn] ?? null;
+        if (!$config)
+            return;
+
+        $trueValue = $config['true'] ?? 1;
+        $falseValue = $config['false'] ?? 0;
+
+        $model = $this->model::findOrFail($id);
+
+        // Toggle & save
+        $model->{$this->confirmingColumn} = ($model->{$this->confirmingColumn} == $trueValue) ? $falseValue : $trueValue;
+        $model->save();
+
+        $this->booleanColumnsState[$id][$this->confirmingColumn] = $model->{$this->confirmingColumn} == $trueValue;
+
+        // force re-render
+        $this->resetPage();
+
+        $this->dispatch('notify', "Updated {$this->confirmingColumn} for ID {$id}");
+    }
+
     public function confirmAction($action, $rowId)
     {
         $this->actionToConfirm = $action;
@@ -369,12 +371,23 @@ class DataTableComponent extends Component
             $this->$method($id);
         }
 
-        $this->reset(['confirmingAction', 'actionToConfirm', 'confirmingRowId', 'confirmMessage']);
+        $this->resetConfirmProperties();
     }
 
     public function cancelAction()
     {
-        $this->reset(['confirmingAction', 'actionToConfirm', 'confirmingRowId', 'confirmMessage']);
+        $this->resetConfirmProperties();
+    }
+
+    public function resetConfirmProperties()
+    {
+        $this->reset([
+            'confirmingAction',
+            'actionToConfirm',
+            'confirmingRowId',
+            'confirmingColumn',
+            'confirmMessage'
+        ]);
     }
 
     public function edit($id) {}
