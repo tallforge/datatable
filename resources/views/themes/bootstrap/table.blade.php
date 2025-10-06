@@ -69,7 +69,7 @@
             </div>
 
             <div>
-                <select wire:change="performBulkAction($event.target.value)" class="form-select form-select-sm">
+                <select wire:change="confirmBulkAction($event.target.value)" class="form-select form-select-sm">
                     <option value="">Bulk Actions</option>
                     @foreach($this->bulkActions() as $key => $action)
                         <option value="{{ $key }}">
@@ -223,15 +223,7 @@
     </div>
 
     <!-- Include Modal Dialog -->
-    @includeIf("tallforge.datatable::themes.{$theme}.modal")
-</div>
+    @includeIf("tallforge.datatable::themes.{$theme}.confirm-modal")
+    @includeIf("tallforge.datatable::themes.{$theme}.bulk-confirm-modal")
 
-{{-- <script>
-    document.addEventListener('livewire:init', () => {
-        Livewire.on('confirm-toggle', ({ id, column }) => {
-            if (confirm(`Are you sure you want to change ${column} for record ID ${id}?`)) {
-                Livewire.dispatch('toggle-boolean', { id, column });
-            }
-        });
-    });
-</script> --}}
+</div>

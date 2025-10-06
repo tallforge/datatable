@@ -229,5 +229,16 @@
     </div>
 
     <!-- Include Modal Dialog -->
-    @includeIf("tallforge.datatable::themes.{$theme}.modal")
+    @includeIf("tallforge.datatable::themes.{$theme}.confirm-modal")
+    @includeIf("tallforge.datatable::themes.{$theme}.bulk-confirm-modal")
 </div>
+
+{{-- <script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('confirm-toggle', ({ id, column }) => {
+            if (confirm(`Are you sure you want to change ${column} for record ID ${id}?`)) {
+                Livewire.dispatch('toggle-boolean', { id, column });
+            }
+        });
+    });
+</script> --}}
