@@ -29,6 +29,7 @@ class DataTableComponent extends Component
 
     public array $filters = [];
     public array $selectedFilters = [];
+    public array $filterLabels = [];
 
     public ?string $paginationMode = null;
     public int $limit = 0;
@@ -58,6 +59,7 @@ class DataTableComponent extends Component
         $showSearch = null,
         $searchPlaceholder = null,
         $filters = [],
+        $filterLabels = [],
 
         $paginationMode = null,
         $perPageOptions = null,
@@ -85,6 +87,7 @@ class DataTableComponent extends Component
         $this->showSearch = $showSearch ?? config('tallforge.datatable.search.show');
         $this->searchPlaceholder = $searchPlaceholder ?? config('tallforge.datatable.search.placeholder');
         $this->filters = $filters;
+        $this->filterLabels = $filterLabels;
 
         $this->paginationMode = $paginationMode ?? config('tallforge.datatable.pagination_mode');
         $this->perPageOptions = $perPageOptions ?? config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page_options');
@@ -212,12 +215,6 @@ class DataTableComponent extends Component
                     ->orderBy($col)
                     ->pluck($col)
                     ->filter() // remove null/empty
-                    ->mapWithKeys(function ($value) use ($col) {
-                        // Reuse the existing getColumnLabel logic
-                        // $label = $this->columnLabels[$col] ?? ucfirst(str_replace('_', ' ', $value));
-                        $label = $this->getColumnLabel($col);
-                        return [$value => $label];
-                    })
                     ->toArray();
             }
 
