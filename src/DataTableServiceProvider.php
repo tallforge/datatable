@@ -19,7 +19,7 @@ class DataTableServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Load package views
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'datatable');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views/tallforge', 'datatable');
 
         // Register Livewire component (with safety check)
         if (class_exists(Livewire::class)) {
