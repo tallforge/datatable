@@ -214,7 +214,8 @@ class DataTableComponent extends Component
                     ->filter() // remove null/empty
                     ->mapWithKeys(function ($value) use ($col) {
                         // Reuse the existing getColumnLabel logic
-                        $label = $this->columnLabels[$col] ?? ucfirst(str_replace('_', ' ', $value));
+                        // $label = $this->columnLabels[$col] ?? ucfirst(str_replace('_', ' ', $value));
+                        $label = $this->getColumnLabel($col);
                         return [$value => $label];
                     })
                     ->toArray();
