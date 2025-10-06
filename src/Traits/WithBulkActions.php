@@ -19,12 +19,12 @@ trait WithBulkActions
     /**
      * The currently pending action awaiting confirmation.
      */
-    public ?string $confirmingAction = null;
+    public ?string $confirmingBulkAction = null;
 
     /**
      * Whether the confirmation modal is visible.
      */
-    public bool $showConfirmModal = false;
+    public bool $showConfirmBulkActionModal = false;
 
     /**
      * Define available bulk actions for the DataTable.
@@ -57,12 +57,12 @@ trait WithBulkActions
      */
     public function confirmBulkAction(string $action): void
     {
-        $this->confirmingAction = $action;
+        $this->confirmingBulkAction = $action;
 
         $actions = $this->bulkActions();
 
         if (isset($actions[$action]['confirm'])) {
-            $this->showConfirmModal = true; // open modal
+            $this->showConfirmBulkActionModal = true; // open modal
         } else {
             // No confirmation needed, perform immediately
             $this->performBulkAction($action);
@@ -104,7 +104,7 @@ trait WithBulkActions
      */
     public function performBulkAction(string $action = null)
     {
-        $action = $action ?? $this->confirmingAction;
+        $action = $action ?? $this->confirmingBulkAction;
         $actions = $this->bulkActions();
 
         if (! isset($actions[$action])) {
@@ -128,8 +128,8 @@ trait WithBulkActions
      */
     public function resetBulkActionModal(): void
     {
-        $this->showConfirmModal = false;
-        $this->confirmingAction = null;
+        $this->showConfirmBulkActionModal = false;
+        $this->confirmingBulkAction = null;
     }
 
     /**
