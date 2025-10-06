@@ -1,10 +1,10 @@
-@if($showConfirmModal)
+@if($showConfirmBulkActionModal)
     <div class="fixed inset-0 flex items-center justify-center bg-gray-800/50 z-50">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
             @php
-                $action = $confirmingAction ? $this->bulkActions()[$confirmingAction] ?? null : null;
+                $action = $confirmingBulkAction ? $this->bulkActions()[$confirmingBulkAction] ?? null : null;
                 $message = $action['confirm'] ?? 'Are you sure you want to perform this action?';
-                $label = $action['label'] ?? ucfirst($confirmingAction);
+                $label = $action['label'] ?? ucfirst($confirmingBulkAction);
             @endphp
 
             <h2 class="text-lg font-semibold text-gray-800 mb-3">{{ $label }}</h2>

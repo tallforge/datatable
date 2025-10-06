@@ -1,11 +1,11 @@
-@if($showConfirmModal)
+@if($showConfirmBulkActionModal)
     <div class="modal fade show d-block" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 @php
-                    $action = $confirmingAction ? $this->bulkActions()[$confirmingAction] ?? null : null;
+                    $action = $confirmingBulkAction ? $this->bulkActions()[$confirmingBulkAction] ?? null : null;
                     $message = $action['confirm'] ?? 'Are you sure you want to perform this action?';
-                    $label = $action['label'] ?? ucfirst($confirmingAction);
+                    $label = $action['label'] ?? ucfirst($confirmingBulkAction);
                   @endphp
 
                 <div class="modal-header">
