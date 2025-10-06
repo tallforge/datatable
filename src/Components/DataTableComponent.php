@@ -384,7 +384,7 @@ class DataTableComponent extends Component
         }
 
         // Dynamically load theme view
-        return view("datatable::themes.{$this->theme}.table", [
+        return view("tallforge.datatable::themes.{$this->theme}.table", [
             'table' => config('tallforge.datatable.themes.' . $this->theme),
             'rows' => $rows,
         ]);
