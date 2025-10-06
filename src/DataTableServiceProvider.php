@@ -18,6 +18,11 @@ class DataTableServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Load published views if they exist
+        if (is_dir(resource_path('views/vendor/tallforge/datatable'))) {
+            $this->loadViewsFrom(resource_path('views/vendor/tallforge/datatable'), 'tallforge.datatable');
+        }
+
         // Load package views
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'tallforge.datatable');
 
