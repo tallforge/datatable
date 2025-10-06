@@ -57,7 +57,7 @@
         @foreach($filters as $key => $options)
             <select wire:model="selectedFilters.{{ $key }}"
                 class="rounded-md border-gray-300 shadow-sm focus:ring focus:ring-indigo-200">
-                <option value="">All {{ ucfirst($key) }}</option>
+                <option value="">Select {{ ucfirst($key) }}</option>
                 @foreach($options as $option)
                     <option value="{{ $option }}">{{ ucfirst($option) }}</option>
                 @endforeach

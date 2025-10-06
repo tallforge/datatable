@@ -50,7 +50,7 @@
     <div class="mb-3 d-flex gap-2">
         @foreach($filters as $key => $options)
             <select wire:model.live="selectedFilters.{{ $key }}" class="form-select">
-                <option value="">All {{ ucfirst($key) }}</option>
+                <option value="">Select {{ ucfirst($key) }}</option>
                 @foreach($options as $option)
                     <option value="{{ $option }}">{{ ucfirst($option) }}</option>
                 @endforeach

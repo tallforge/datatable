@@ -212,6 +212,11 @@ class DataTableComponent extends Component
                     ->orderBy($col)
                     ->pluck($col)
                     ->filter() // remove null/empty
+                    ->mapWithKeys(function ($value) use ($col) {
+                        // Reuse the existing getColumnLabel logic
+                        $label = $this->columnLabels[$col] ?? ucfirst(str_replace('_', ' ', $value));
+                        return [$value => $label];
+                    })
                     ->toArray();
             }
 
