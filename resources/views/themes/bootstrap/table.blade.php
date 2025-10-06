@@ -162,10 +162,15 @@
                         <td class="text-center">
                             @if($rowActionType === 'buttons')
                                 @foreach($rowActions as $config)
-                                    <button type="button" class="btn btn-sm btn-{{ $config['color'] ?? 'primary' }} me-1"
-                                        wire:click="{{ $config['method'] }}({{ $row->id }})">
+                                    <button type="button"
+                                            class="btn btn-sm btn-{{ $config['color'] ?? 'primary' }} me-1"
+                                            wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})">
                                         {{ $config['label'] }}
                                     </button>
+                                    {{-- <button type="button" class="btn btn-sm btn-{{ $config['color'] ?? 'primary' }} me-1"
+                                        wire:click="{{ $config['method'] }}({{ $row->id }})">
+                                        {{ $config['label'] }}
+                                    </button> --}}
                                 @endforeach
                             @else
                                 {{-- ($rowActionType === 'dropdown') --}}
@@ -177,10 +182,15 @@
                                     <ul class="dropdown-menu">
                                         @foreach($rowActions as $config)
                                             <li>
-                                                <a href="#" class="dropdown-item"
-                                                    wire:click.prevent="{{ $config['method'] }}({{ $row->id }})">
+                                                <a href="#"
+                                                    class="dropdown-item"
+                                                    wire:click.prevent="confirmAction('{{ $config['method'] }}', {{ $row->id }})">
                                                     {{ $config['label'] }}
                                                 </a>
+                                                {{-- <a href="#" class="dropdown-item"
+                                                    wire:click.prevent="{{ $config['method'] }}({{ $row->id }})">
+                                                    {{ $config['label'] }}
+                                                </a> --}}
                                             </li>
                                         @endforeach
                                     </ul>
@@ -211,9 +221,12 @@
             {{ $rows->links() }}
         @endif
     </div>
+
+    <!-- Include Modal Dialog -->
+    @includeIf("tallforge.datatable::themes.{$theme}.modal")
 </div>
 
-<script>
+{{-- <script>
     document.addEventListener('livewire:init', () => {
         Livewire.on('confirm-toggle', ({ id, column }) => {
             if (confirm(`Are you sure you want to change ${column} for record ID ${id}?`)) {
@@ -221,4 +234,4 @@
             }
         });
     });
-</script>
+</script> --}}

@@ -44,6 +44,10 @@ class DataTableComponent extends Component
 
     public array $rowActions = [];
     public string $rowActionType = 'buttons'; // options: 'buttons' | 'dropdown'
+    public $confirmingAction = false;
+    public $actionToConfirm = null;
+    public $confirmingRowId = null;
+    public $confirmMessage = null;
 
     public function mount(
         $theme = null,
@@ -342,6 +346,39 @@ class DataTableComponent extends Component
         $this->sortDirection = 'asc';
         $this->resetPage();
     }
+
+    public function confirmAction($action, $rowId)
+    {
+        $this->actionToConfirm = $action;
+        $this->confirmingRowId = $rowId;
+
+        $config = collect($this->rowActions)->firstWhere('method', $action);
+
+        $this->confirmMessage = $config['confirm'] ?? 'Are you sure you want to perform this action?';
+        $this->confirmingAction = true;
+    }
+
+    public function performConfirmedAction()
+    {
+        if (!$this->actionToConfirm || !$this->confirmingRowId) return;
+
+        $method = $this->actionToConfirm;
+        $id = $this->confirmingRowId;
+
+        if (method_exists($this, $method)) {
+            $this->$method($id);
+        }
+
+        $this->reset(['confirmingAction', 'actionToConfirm', 'confirmingRowId', 'confirmMessage']);
+    }
+
+    public function cancelAction()
+    {
+        $this->reset(['confirmingAction', 'actionToConfirm', 'confirmingRowId', 'confirmMessage']);
+    }
+
+    public function edit($id) {}
+    public function delete($id) {}
 
     public function render()
     {
