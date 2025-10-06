@@ -44,7 +44,6 @@ class DataTableComponent extends Component
     public array $rowActions = [];
     public string $rowActionType = 'buttons'; // options: 'buttons' | 'dropdown'
 
-
     public function mount(
         $theme = null,
         $model = null,

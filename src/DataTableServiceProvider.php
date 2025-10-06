@@ -26,7 +26,7 @@ class DataTableServiceProvider extends ServiceProvider
             Livewire::component('tallforge.datatable', DataTableComponent::class);
         }
 
-        // Publish config
+        // Publish config for customization
         $this->publishes([
             __DIR__ . '/../config/datatable.php' => config_path('tallforge/datatable.php'),
         ], 'tallforge-datatable-config');
@@ -36,7 +36,7 @@ class DataTableServiceProvider extends ServiceProvider
             __DIR__ . '/../resources/views' => resource_path('views/vendor/tallforge/datatable'),
         ], 'tallforge-datatable-views');
 
-        // Publish all assets at once (optional but convenient)
+        // Publish all assets at once for customization (optional but convenient)
         $this->publishes([
             __DIR__ . '/../config/datatable.php' => config_path('tallforge/datatable.php'),
             __DIR__ . '/../resources/views' => resource_path('views/vendor/tallforge/datatable'),
