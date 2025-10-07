@@ -30,6 +30,7 @@ class DataTableComponent extends Component
     public array $filters = [];
     public array $selectedFilters = [];
     public array $filterLabels = [];
+    public array $booleanFilters = [];
 
     public ?string $paginationMode = null;
     public int $limit = 0;
@@ -69,6 +70,7 @@ class DataTableComponent extends Component
         $searchPlaceholder = null,
         $filters = [],
         $filterLabels = [],
+        $booleanFilters = [],
 
         $paginationMode = null,
         $perPageOptions = null,
@@ -100,6 +102,7 @@ class DataTableComponent extends Component
         $this->searchPlaceholder = $searchPlaceholder ?? config('tallforge.datatable.search.placeholder');
         $this->filters = $filters;
         $this->filterLabels = $filterLabels;
+        $this->booleanFilters = $booleanFilters;
 
         $this->paginationMode = $paginationMode ?? config('tallforge.datatable.pagination_mode');
         $this->perPageOptions = $perPageOptions ?? config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page_options');

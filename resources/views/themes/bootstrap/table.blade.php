@@ -54,16 +54,29 @@
     </div>
 
     <!-- Filters ToolBar -->
-    <div class="mb-3 d-flex gap-2">
-        @foreach($filters as $key => $options)
-            <select wire:model.live="selectedFilters.{{ $key }}" class="form-select">
-                <option value="">Select {{ $filterLabels[$key] ?? $columnLabels[$key] ?? ucfirst(str_replace('_', ' ', $key)) }}</option>
-                @foreach($options as $option)
-                    <option value="{{ $option }}">{{ ucfirst($option) }}</option>
-                @endforeach
-            </select>
-        @endforeach
-    </div>
+    @if($filters || $booleanFilters)
+        <div class="mb-3 d-flex gap-2">
+            {{-- Normal Filters --}}
+            @forelse($filters as $key => $options)
+                <select wire:model.live="selectedFilters.{{ $key }}" class="form-select">
+                    <option value="">Select {{ $filterLabels[$key] ?? $columnLabels[$key] ?? ucfirst(str_replace('_', ' ', $key)) }}</option>
+                    @foreach($options as $option)
+                        <option value="{{ $option }}">{{ ucfirst($option) }}</option>
+                    @endforeach
+                </select>
+            @endforelse
+
+            {{-- Boolean Filters --}}
+            @forelse($booleanFilters as $key => $options)
+                <select wire:model.live="selectedFilters.{{ $key }}" class="form-select">
+                    <option value="">Select {{ $filterLabels[$key] ?? $columnLabels[$key] ?? ucfirst(str_replace('_', ' ', $key)) }}</option>
+                    @foreach($options as $option => $label)
+                        <option value="{{ $option }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            @endforelse
+        </div>
+    @endif
 
     <!-- Bulk Actions Toolbar -->
     @if($this->hasSelection())
