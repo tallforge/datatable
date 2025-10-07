@@ -32,7 +32,6 @@ class DataTableComponent extends Component
     public array $filterLabels = [];
     public array $booleanFilters = [];
 
-    public $rows = null;
     public ?string $paginationMode = null;
     public int $limit = 0;
     public int $perPage = 0;
@@ -469,18 +468,18 @@ class DataTableComponent extends Component
 
     public function render()
     {
-        // Store the filtered data (important for traits/child component to pickup)
-        $data = $this->loadData();
+        // // Store the filtered data (important for traits/child component to pickup)
+        // $data = $this->loadData();
 
-        // Store only the items collection for traits (Livewire-safe)
-        $this->rows = $data instanceof \Illuminate\Pagination\LengthAwarePaginator 
-            ? collect($data->items()) 
-            : collect($data);
+        // // Store only the items collection for traits (Livewire-safe)
+        // $this->rows = $data instanceof \Illuminate\Pagination\LengthAwarePaginator 
+        //     ? collect($data->items()) 
+        //     : collect($data);
 
         // Dynamically load theme view
         return view("tallforge.datatable::themes.{$this->theme}.table", [
             'table' => config('tallforge.datatable.themes.' . $this->theme),
-            'rows' => $this->rows,
+            'rows' => $this->loadData()
         ]);
     }
 }
