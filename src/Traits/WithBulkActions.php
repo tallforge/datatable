@@ -95,6 +95,15 @@ trait WithBulkActions
             return $this->rows;
         }
 
+        // // Fallback to fetch from loadData()
+        // if (method_exists($this, 'loadData')) {
+        //     $result = $this->loadData();
+        //     // Handle both paginated and collection results
+        //     return $result instanceof \Illuminate\Pagination\LengthAwarePaginator 
+        //         ? collect($result->items()) 
+        //         : collect($result);
+        // }
+
         // fallback for components using pagination
         return collect($this->model::paginate($this->perPage ?? 10)->items());
     }

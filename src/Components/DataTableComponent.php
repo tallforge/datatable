@@ -32,7 +32,7 @@ class DataTableComponent extends Component
     public array $filterLabels = [];
     public array $booleanFilters = [];
 
-    public ?array $rows = [];
+    public $rows = null;
     public ?string $paginationMode = null;
     public int $limit = 0;
     public int $perPage = 0;
