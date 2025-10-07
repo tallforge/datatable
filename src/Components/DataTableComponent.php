@@ -346,7 +346,9 @@ class DataTableComponent extends Component
         // force re-render
         $this->resetPage();
 
-        $this->dispatch('notify', type: 'success', message: "Updated {$this->confirmingColumn} for ID {$id}");
+        $columnLabel = $this->filterLabels[$this->confirmingColumn] ?? $this->columnLabels[$this->confirmingColumn] ?? ucfirst(str_replace('_', ' ', $this->confirmingColumn));
+
+        $this->dispatch('notify', type: 'success', message: "Updated {$columnLabel} successfully.");
     }
 
     public function confirmAction($action, $rowId)
