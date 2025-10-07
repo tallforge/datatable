@@ -248,7 +248,9 @@
                     </button>
                 @endif
             @else
-                {{ $rows->links() }}
+                @if($rows instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                    {{ $rows->links() }}
+                @endif
             @endif
         </div>
     @endif
