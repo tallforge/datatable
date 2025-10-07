@@ -64,6 +64,7 @@
                         <option value="{{ $option }}">{{ ucfirst($option) }}</option>
                     @endforeach
                 </select>
+            @empty
             @endforelse
 
             {{-- Boolean Filters --}}
@@ -74,6 +75,7 @@
                         <option value="{{ $option }}">{{ $label }}</option>
                     @endforeach
                 </select>
+            @empty
             @endforelse
         </div>
     @endif

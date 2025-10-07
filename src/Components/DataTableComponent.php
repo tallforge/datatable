@@ -322,6 +322,7 @@ class DataTableComponent extends Component
         ]);
 
         $this->resetConfirmProperties();
+        $this->resetSelection();
 
         $this->perPage = config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page');
         $this->limit = $this->perPage;
