@@ -469,7 +469,13 @@ class DataTableComponent extends Component
 
     public function render()
     {
-        $this->rows = $this->loadData(); // Store the filtered data (important for traits/child component to pickup)
+        // Store the filtered data (important for traits/child component to pickup)
+        $data = $this->loadData();
+
+        // Store only the items collection for traits (Livewire-safe)
+        $this->rows = $data instanceof \Illuminate\Pagination\LengthAwarePaginator 
+            ? collect($data->items()) 
+            : collect($data);
 
         // Dynamically load theme view
         return view("tallforge.datatable::themes.{$this->theme}.table", [
