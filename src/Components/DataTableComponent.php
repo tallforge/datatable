@@ -346,7 +346,7 @@ class DataTableComponent extends Component
         // force re-render
         $this->resetPage();
 
-        $this->dispatch('notify', "Updated {$this->confirmingColumn} for ID {$id}");
+        $this->dispatch('notify', type: 'success', message: "Updated {$this->confirmingColumn} for ID {$id}");
     }
 
     public function confirmAction($action, $rowId)
