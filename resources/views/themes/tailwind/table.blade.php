@@ -176,7 +176,7 @@
                                         <button type="button"
                                             class="px-3 py-1 text-sm text-white rounded-md
                                             bg-{{ $config['color'] ?? 'blue' }}-600 hover:bg-{{ $config['color'] ?? 'blue' }}-700 mr-1"
-                                            @if($config['confirm']) 
+                                            @if(isset($config['confirm']))
                                                 wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
                                             @endif
                                             >
@@ -195,7 +195,7 @@
                                             @foreach($rowActions as $config)
                                                 <a href="#"
                                                     class="block px-3 py-1 text-sm text-gray-700 hover:bg-gray-100"
-                                                    @if($config['confirm']) 
+                                                    @if(isset($config['confirm'])) 
                                                         wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
                                                     @endif
                                                     x-on:click="open = false">

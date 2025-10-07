@@ -168,11 +168,13 @@
                                 @foreach($rowActions as $config)
                                     <button type="button"
                                             class="btn btn-sm btn-{{ $config['color'] ?? 'primary' }} me-1"
-                                            @if($config['confirm']) 
+                                            @if(isset($config['confirm']))
                                                 wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
+                                                data-bs-toggle="modal" data-bs-target="#confirmRowActionModal"
+                                            @else
+                                                wire:click="performAction('{{ $config['method'] }}', {{ $row->id }})"
                                             @endif
-                                            wire:key="confirmActionKey-{{ $loop->index }}"
-                                            data-bs-toggle="modal" data-bs-target="#confirmRowActionModal">
+                                            wire:key="actionKey-{{ $loop->index }}">
                                         {{ $config['label'] }}
                                     </button>
                                 @endforeach
@@ -188,11 +190,13 @@
                                             <li>
                                                 <a href="#"
                                                     class="dropdown-item"
-                                                    @if($config['confirm']) 
+                                                    @if(isset($config['confirm']))
                                                         wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
+                                                        data-bs-toggle="modal" data-bs-target="#confirmRowActionModal"
+                                                    @else
+                                                        wire:click="performAction('{{ $config['method'] }}', {{ $row->id }})"
                                                     @endif
-                                                    wire:key="confirmActionKey-{{ $loop->index }}"
-                                                    data-bs-toggle="modal" data-bs-target="#confirmRowActionModal">
+                                                    wire:key="actionKey-{{ $loop->index }}">
                                                     {{ $config['label'] }}
                                                 </a>
                                             </li>

@@ -375,6 +375,18 @@ class DataTableComponent extends Component
         $this->resetConfirmProperties();
     }
 
+    // Perform action without any confirmation
+    public function performAction($method, $id)
+    {
+        $this->confirmingAction = false;
+        $this->actionToConfirm = $method;
+        $this->confirmingRowId = $id;
+
+        if (method_exists($this, $method)) {
+            $this->$method($id);
+        }
+    }
+
     public function cancelAction()
     {
         $this->resetConfirmProperties();
