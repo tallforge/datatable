@@ -51,6 +51,13 @@ class DataTableComponent extends Component
     public $confirmingColumn = null;
     public $confirmMessage = null;
 
+    /**
+     * Notification properties for handling dispatched notify events.
+     */
+    public ?string $notificationType = null;
+    public ?string $notificationMessage = null;
+    public bool $showNotification = false;
+
     public function mount(
         $theme = null,
         $model = null,
@@ -392,6 +399,34 @@ class DataTableComponent extends Component
 
     public function edit($id) {}
     public function delete($id) {}
+
+    #[\Livewire\Attributes\On('notify')]
+    public function handleNotification(string $type, string $message)
+    {
+        // Store notification data in component properties for display
+        $this->notificationType = $type;
+        $this->notificationMessage = $message;
+        $this->showNotification = true;
+
+        // Optional: Auto-hide notification after a delay
+        $this->dispatch('show-notification', [
+            'type' => $type,
+            'message' => $message,
+            'timeout' => 5000 // 5 seconds
+        ]);
+    }
+
+    /**
+     * Clear/dismiss the current notification.
+     * 
+     * @return void
+     */
+    public function dismissNotification(): void
+    {
+        $this->showNotification = false;
+        $this->notificationType = null;
+        $this->notificationMessage = null;
+    }
 
     public function render()
     {
