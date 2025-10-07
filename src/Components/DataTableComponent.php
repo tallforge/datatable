@@ -32,6 +32,7 @@ class DataTableComponent extends Component
     public array $filterLabels = [];
     public array $booleanFilters = [];
 
+    public $rows = null;
     public ?string $paginationMode = null;
     public int $limit = 0;
     public int $perPage = 0;
@@ -468,10 +469,12 @@ class DataTableComponent extends Component
 
     public function render()
     {
+        $this->rows = $this->loadData(); // Store the filtered data (important for traits/child component to pickup)
+
         // Dynamically load theme view
         return view("tallforge.datatable::themes.{$this->theme}.table", [
             'table' => config('tallforge.datatable.themes.' . $this->theme),
-            'rows' => $this->loadData(),
+            'rows' => $this->rows,
         ]);
     }
 }
