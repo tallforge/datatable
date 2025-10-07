@@ -347,7 +347,6 @@ class DataTableComponent extends Component
         $this->resetPage();
 
         $columnLabel = $this->filterLabels[$this->confirmingColumn] ?? $this->columnLabels[$this->confirmingColumn] ?? ucfirst(str_replace('_', ' ', $this->confirmingColumn));
-
         $this->dispatch('notify', type: 'success', message: "Updated {$columnLabel} successfully.");
     }
 

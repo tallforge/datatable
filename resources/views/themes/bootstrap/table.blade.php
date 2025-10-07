@@ -168,7 +168,9 @@
                                 @foreach($rowActions as $config)
                                     <button type="button"
                                             class="btn btn-sm btn-{{ $config['color'] ?? 'primary' }} me-1"
-                                            wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
+                                            @if($config['confirm']) 
+                                                wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
+                                            @endif
                                             wire:key="confirmActionKey-{{ $loop->index }}"
                                             data-bs-toggle="modal" data-bs-target="#confirmRowActionModal">
                                         {{ $config['label'] }}
@@ -186,7 +188,9 @@
                                             <li>
                                                 <a href="#"
                                                     class="dropdown-item"
-                                                    wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
+                                                    @if($config['confirm']) 
+                                                        wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
+                                                    @endif
                                                     wire:key="confirmActionKey-{{ $loop->index }}"
                                                     data-bs-toggle="modal" data-bs-target="#confirmRowActionModal">
                                                     {{ $config['label'] }}
@@ -201,7 +205,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ count($selectedColumns) }}" class="text-center">
+                    <td colspan="{{ count($selectedColumns) + 2 }}" class="text-center">
                         No results found
                     </td>
                 </tr>
