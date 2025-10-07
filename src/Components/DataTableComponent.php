@@ -42,6 +42,9 @@ class DataTableComponent extends Component
     public bool $showReset = false;
     public ?string $resetLabel = null;
 
+    public bool $showCreate = false;
+    public ?string $createLabel = null;
+
     public array $rowActions = [];
     public string $rowActionType = 'buttons'; // options: 'buttons' | 'dropdown'
 
@@ -76,6 +79,9 @@ class DataTableComponent extends Component
         $showReset = null,
         $resetLabel = null,
 
+        $showCreate = null,
+        $createLabel = null,
+
         $rowActions = [],
         $rowActionType = null
     ) {
@@ -105,6 +111,9 @@ class DataTableComponent extends Component
 
         $this->showReset = $showReset ?? config('tallforge.datatable.reset.show');
         $this->resetLabel = $resetLabel ?? config('tallforge.datatable.reset.label');
+
+        $this->showCreate = $showCreate ?? config('tallforge.datatable.create.show');
+        $this->createLabel = $createLabel ?? config('tallforge.datatable.create.label');
 
         $this->rowActions = $rowActions ?? [];
         $this->rowActionType = $rowActionType ?? 'buttons';
@@ -308,6 +317,8 @@ class DataTableComponent extends Component
             'perPage',
             'limit',
         ]);
+
+        $this->resetConfirmProperties();
 
         $this->perPage = config('tallforge.datatable.paginations.' . $this->paginationMode . '.per_page');
         $this->limit = $this->perPage;

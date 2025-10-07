@@ -44,6 +44,13 @@
                 {{ $resetLabel }}
             </button>
         @endif
+
+        <!-- Create Button -->
+        @if($showCreate)
+            <button wire:click="create" type="button" class="btn btn-outline-secondary">
+                {{ $createLabel }}
+            </button>
+        @endif
     </div>
 
     <!-- Filters ToolBar -->
