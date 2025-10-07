@@ -88,9 +88,8 @@
         </div>
     @endif
 
-
     <!-- Table -->
-    <table class="{{ $table['class'] }}">
+    <table class="{{ $table['class'] ?? 'table table-striped table-bordered' }}">
         <thead>
             <tr>
                 <th style="width:40px;">
@@ -225,19 +224,21 @@
     </table>
 
     <!-- Pagination or Load More -->
-    <div class="mt-3 text-center">
-        @if($paginationMode === 'load-more')
-            @if($rows->count() >= $limit)
-                <button wire:click="loadMore" class="btn btn-secondary">
-                    Load More
-                </button>
+    @if($rows)
+        <div class="mt-3 text-center">
+            @if($paginationMode === 'load-more')
+                @if($rows->count() >= $limit)
+                    <button wire:click="loadMore" class="btn btn-secondary">
+                        Load More
+                    </button>
+                @endif
+            @else
+                {{ $rows->links() }}
             @endif
-        @else
-            {{ $rows->links() }}
-        @endif
-    </div>
+        </div>
+    @endif
 
-    <!-- Include Modal Dialog -->
+    <!-- Include Modal Dialogs -->
     @includeIf("tallforge.datatable::themes.{$theme}.confirm-modal")
     @includeIf("tallforge.datatable::themes.{$theme}.bulk-confirm-modal")
 

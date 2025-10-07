@@ -54,10 +54,6 @@ class DataTableComponent extends Component
     public $confirmingColumn = null;
     public $confirmMessage = null;
 
-    // public $query = null;
-    // public $rows = [];
-    // public $table = [];
-
     public function mount(
         $theme = null,
         $model = null,
@@ -421,7 +417,7 @@ class DataTableComponent extends Component
     public function edit($id) {}
     public function delete($id) {}
     
-    public function render()
+    public function loadData()
     {
         $query = $this->model::query();
 
@@ -463,16 +459,15 @@ class DataTableComponent extends Component
             }
         }
 
-        // $this->table = config('tallforge.datatable.themes.' . $this->theme);
-        // $this->query = $query;
-        // $this->rows = $rows;
-        // Dynamically load theme view
-        // return view("tallforge.datatable::themes.{$this->theme}.table");
+        return $rows;
+    }
 
+    public function render()
+    {
         // Dynamically load theme view
         return view("tallforge.datatable::themes.{$this->theme}.table", [
             'table' => config('tallforge.datatable.themes.' . $this->theme),
-            'rows' => $rows,
+            'rows' => $this->loadData(),
         ]);
     }
 }
