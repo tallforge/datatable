@@ -5,7 +5,7 @@
 
         <!-- Search -->
         @if($showSearch)
-            <input type="text" wire:model.live.debounce.500ms="search" class="form-control w-25"
+            <input type="text" wire:model.live.debounce.500ms="search" wire:click="$set('search', '')" class="form-control w-25"
                 placeholder="{{ $searchPlaceholder }}">
         @endif
 
@@ -137,6 +137,10 @@
                     </td>
                     @foreach($columns as $col)
                         @if(in_array($col, $selectedColumns))
+                            @php
+                                $rel = $relationColumnsFlat[$col]['relation'];
+                                $relCol = $relationColumnsFlat[$col]['column'];
+                            @endphp
                             <td class="text-{{ $this->getAlignColumn($col) }}"
                                 wire:key='rowCol-{{ $loop->parent->index }}-{{ $loop->index }}'>
 
@@ -188,14 +192,17 @@
                             @if($rowActionType === 'buttons')
                                 @foreach($rowActions as $config)
                                     <button type="button"
-                                            class="btn btn-sm btn-{{ $config['color'] ?? 'primary' }} me-1"
-                                            @if(isset($config['confirm']))
-                                                wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
-                                                data-bs-toggle="modal" data-bs-target="#confirmRowActionModal"
-                                            @else
-                                                wire:click="performAction('{{ $config['method'] }}', {{ $row->id }})"
-                                            @endif
-                                            wire:key="actionKey-{{ $loop->index }}">
+                                        class="btn btn-sm btn-{{ $config['color'] ?? 'primary' }} me-1"
+                                        @if(isset($config['confirm']))
+                                            wire:click="confirmAction('{{ $config['method'] }}', {{ $row->id }})"
+                                            data-bs-toggle="modal" data-bs-target="#confirmRowActionModal"
+                                        @else
+                                            wire:click="performAction('{{ $config['method'] }}', {{ $row->id }})"
+                                        @endif
+                                        wire:key="actionKey-{{ $loop->index }}">
+                                        @if(isset($config['icon']))
+                                            <i class="{{ $config['icon'] }}"></i>
+                                        @endif
                                         {{ $config['label'] }}
                                     </button>
                                 @endforeach
@@ -218,6 +225,9 @@
                                                         wire:click="performAction('{{ $config['method'] }}', {{ $row->id }})"
                                                     @endif
                                                     wire:key="actionKey-{{ $loop->index }}">
+                                                    @if(isset($config['icon']))
+                                                        <i class="{{ $config['icon'] }}"></i>
+                                                    @endif
                                                     {{ $config['label'] }}
                                                 </a>
                                             </li>

@@ -3,14 +3,20 @@
 namespace TallForge\DataTable\Components;
 
 use Illuminate\Support\Facades\Schema;
-use Livewire\Component;
-use Livewire\WithPagination;
-use TallForge\DataTable\Traits\WithBulkActions;
-use TallForge\DataTable\Traits\WithColumnFormatter;
+use Livewire\{
+    Component,
+    WithPagination
+};
+use TallForge\DataTable\Traits\{
+    WithBulkActions,
+    WithColumnFormatter,
+    WithRelations
+};
+
 
 class DataTableComponent extends Component
 {
-    use WithPagination, WithBulkActions, WithColumnFormatter;
+    use WithPagination, WithBulkActions, WithColumnFormatter, WithRelations;
 
     public ?string $theme = null;
     public ?string $model = null;
@@ -120,6 +126,14 @@ class DataTableComponent extends Component
 
         $this->rowActions = $rowActions ?? [];
         $this->rowActionType = $rowActionType ?? 'buttons';
+
+        // Merge relation columns into columns (populates relationColumnsFlat too)
+        $this->mergeRelationColumnsIntoColumns();
+
+        // ensure selectedColumns contains something valid
+        if (empty($this->selectedColumns)) {
+            $this->selectedColumns = $this->columns;
+        }
 
         $this->loadDynamicFilters();
     }
@@ -302,6 +316,11 @@ class DataTableComponent extends Component
 
     public function getColumnLabel($col)
     {
+        // relation column label takes precedence
+        $relLabel = $this->getRelationColumnLabel($col);
+        if ($relLabel) return $relLabel;
+        
+        // explicit column labels or fallback
         return $this->columnLabels[$col] ?? ucfirst(str_replace('_', ' ', $col));
     }
 
@@ -420,21 +439,82 @@ class DataTableComponent extends Component
 
     public function edit($id) {}
     public function delete($id) {}
+
+    protected function isDatabaseColumn(string $column): bool
+    {
+        try {
+            $table = (new $this->model)->getTable();
+
+            // Get column name (remove alias if relation.field)
+            if (str_contains($column, '.')) {
+                return false; // relation field, handled separately
+            }
+
+            static $tableColumnsCache = [];
+
+            if (!isset($tableColumnsCache[$table])) {
+                $tableColumnsCache[$table] = Schema::getColumnListing($table);
+            }
+
+            return in_array($column, $tableColumnsCache[$table]);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    protected function applySearch($query)
+    {
+        $search = trim($this->search ?? '');
+
+        if ($search === '') {
+            return $query;
+        }
+
+        $query->where(function ($q) use ($search) {
+            foreach ($this->selectedColumns as $col) {
+
+                // Handle relation column
+                if ($this->isRelationColumn($col)) {
+                    [$relation, $relCol] = explode('.', $col, 2);
+                    $q->orWhereHas($relation, function ($r) use ($relCol, $search) {
+                        $r->where($relCol, 'like', "%{$search}%");
+                    });
+                    continue;
+                }
+
+                // Skip non-existing columns safely
+                if (! $this->isDatabaseColumn($col)) {
+                    continue;
+                }
+
+                // Safe base table search
+                $q->orWhere($col, 'like', "%{$search}%");
+            }
+        });
+
+        return $query;
+    }
     
     public function loadData()
     {
         $query = $this->model::query();
 
-        // Apply search
-        if ($this->search && count($this->selectedColumns)) {
-            $query->where(function ($q) {
-                foreach ($this->selectedColumns as $column) {
-                    if (Schema::hasColumn((new $this->model)->getTable(), $column)) {
-                        $q->orWhere($column, 'like', "%{$this->search}%");
-                    }
-                }
-            });
-        }
+        // Eager load all declared relations
+        $query = $this->eagerLoadRelations($query);
+
+        // Apply search (new)
+        $query = $this->applySearch($query);
+
+        // // Apply search
+        // if ($this->search && count($this->selectedColumns)) {
+        //     $query->where(function ($q) {
+        //         foreach ($this->selectedColumns as $column) {
+        //             if (Schema::hasColumn((new $this->model)->getTable(), $column)) {
+        //                 $q->orWhere($column, 'like', "%{$this->search}%");
+        //             }
+        //         }
+        //     });
+        // }
 
         // Apply filters
         foreach ($this->selectedFilters as $key => $value) {
@@ -468,18 +548,11 @@ class DataTableComponent extends Component
 
     public function render()
     {
-        // // Store the filtered data (important for traits/child component to pickup)
-        // $data = $this->loadData();
-
-        // // Store only the items collection for traits (Livewire-safe)
-        // $this->rows = $data instanceof \Illuminate\Pagination\LengthAwarePaginator 
-        //     ? collect($data->items()) 
-        //     : collect($data);
-
         // Dynamically load theme view
         return view("tallforge.datatable::themes.{$this->theme}.table", [
             'table' => config('tallforge.datatable.themes.' . $this->theme),
-            'rows' => $this->loadData()
+            'rows' => $this->loadData(),
+            'relationColumnsFlat' => $this->relationColumnsFlat,
         ]);
     }
 }
