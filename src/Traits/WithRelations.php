@@ -44,14 +44,18 @@ trait WithRelations
     {
         $this->relationColumnsFlat = $this->getRelationColumnsFlat();
 
-        // Ensure columns exists
-        if (! isset($this->columns) || ! is_array($this->columns)) {
-            $this->columns = [];
-        }
+        // Ensure both arrays exist
+        $this->columns = $this->columns ?? [];
+        $this->selectedColumns = $this->selectedColumns ?? [];
 
         foreach (array_keys($this->relationColumnsFlat) as $colKey) {
+            // Ensure column exists in all columns
             if (! in_array($colKey, $this->columns, true)) {
                 $this->columns[] = $colKey;
+            }
+
+            if (empty($this->selectedColumns) || ! in_array($colKey, $this->selectedColumns, true)) {
+                $this->selectedColumns[] = $colKey;
             }
         }
     }

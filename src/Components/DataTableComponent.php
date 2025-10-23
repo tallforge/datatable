@@ -101,11 +101,12 @@ class DataTableComponent extends Component
 
         $this->columns = $columns ?: $this->resolveColumns();
         $this->selectedColumns = $selectedColumns ?: $this->columns;
+        $this->relationColumns = $relationColumns ?? [];
+        
         $this->columnLabels = $columnLabels;
         $this->booleanColumns = $booleanColumns ?? [];
         $this->alignColumns = $alignColumns ?? [];
         $this->statusColumns = $statusColumns ?? [];
-        $this->relationColumns = $relationColumns ?? [];
 
         $this->showSearch = $showSearch ?? config('tallforge.datatable.search.show');
         $this->searchPlaceholder = $searchPlaceholder ?? config('tallforge.datatable.search.placeholder');
