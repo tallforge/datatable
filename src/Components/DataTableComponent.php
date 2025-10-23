@@ -239,51 +239,6 @@ class DataTableComponent extends Component
     /**
      * Load dynamic filters for the column of data table.
      *
-     * @return void
-     */
-    public function loadDynamicFiltersOldLegacy()
-    {
-        foreach ($this->filters as $col => $config) {
-            // Dynamic from base/self model
-            if ($config === 'self') {
-                $this->filters[$col] = $this->model::query()
-                    ->select($col)
-                    ->distinct()
-                    ->orderBy($col)
-                    ->pluck($col)
-                    ->filter() // remove null/empty
-                    ->toArray();
-            }
-
-            // Dynamic from external model
-            if (is_array($config) && isset($config['model'], $config['key'], $config['label'])) {
-                $query = $config['model']::query();
-
-                // Apply where clauses if provided
-                if (isset($config['where']) && is_array($config['where'])) {
-                    foreach ($config['where'] as $condition) {
-                        // Supports ['column','operator','value'] or just ['column','value']
-                        if (count($condition) === 3) {
-                            [$column, $operator, $value] = $condition;
-                            $query->where($column, $operator, $value);
-                        } elseif (count($condition) === 2) {
-                            [$column, $value] = $condition;
-                            $query->where($column, $value);
-                        }
-                    }
-                }
-
-                $this->filters[$col] = $query
-                    ->orderBy($config['label'])
-                    ->pluck($config['label'], $config['key'])
-                    ->toArray();
-            }
-        }
-    }
-
-    /**
-     * Load dynamic filters for the column of data table.
-     *
      * Supports:
      * - 'self'                     → Distinct values from base model
      * - ['model'=>..., 'key'=>...] → External model source
@@ -611,12 +566,42 @@ class DataTableComponent extends Component
         return $query;
     }
 
-    protected function applyFilters($query)
+    protected function applyFiltersOldLegacy($query)
     {
         foreach ($this->selectedFilters as $key => $value) {
             if ($value) {
                 $query->where($key, $value);
             }
+        }
+
+        return $query;
+    }
+
+    public function applyFilters($query)
+    {
+        foreach ($this->selectedFilters as $column => $value) {
+            if (blank($value)) {
+                continue;
+            }
+
+            // Handle relation filters (e.g., addresses.city)
+            if (str_contains($column, '.')) {
+                [$relation, $relColumn] = explode('.', $column, 2);
+                $query->whereHas($relation, function ($q) use ($relColumn, $value) {
+                    $q->where($relColumn, $value);
+                });
+                continue;
+            }
+
+            // Handle boolean filters
+            // if (isset($this->booleanFilters[$column])) {
+            //     $trueValues = ['1', 1, true, 'true', 'yes', 'Y'];
+            //     $query->where($column, in_array($value, $trueValues) ? 'Y' : 'N');
+            //     continue;
+            // }
+
+            // Handle normal filters
+            $query->where($column, $value);
         }
 
         return $query;
