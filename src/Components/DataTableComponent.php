@@ -584,14 +584,28 @@ class DataTableComponent extends Component
                 continue;
             }
 
-            // Handle relation filters (e.g., addresses.city)
+            // Detect relation-based filters, e.g. "addresses.city"
             if (str_contains($column, '.')) {
                 [$relation, $relColumn] = explode('.', $column, 2);
-                $query->whereHas($relation, function ($q) use ($relColumn, $value) {
-                    $q->where($relColumn, $value);
-                });
+
+                // Ensure relation method exists on model
+                if (method_exists($this->model, $relation) || method_exists(new $this->model, $relation)) {
+                    $query->whereHas($relation, function ($q) use ($relColumn, $value) {
+                        $q->where($relColumn, $value);
+                    });
+                }
+
                 continue;
             }
+
+            // Handle relation filters (e.g., addresses.city)
+            // if (str_contains($column, '.')) {
+            //     [$relation, $relColumn] = explode('.', $column, 2);
+            //     $query->whereHas($relation, function ($q) use ($relColumn, $value) {
+            //         $q->where($relColumn, $value);
+            //     });
+            //     continue;
+            // }
 
             // Handle boolean filters
             // if (isset($this->booleanFilters[$column])) {
