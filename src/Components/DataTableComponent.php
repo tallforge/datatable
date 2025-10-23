@@ -566,17 +566,6 @@ class DataTableComponent extends Component
         return $query;
     }
 
-    protected function applyFiltersOldLegacy($query)
-    {
-        foreach ($this->selectedFilters as $key => $value) {
-            if ($value) {
-                $query->where($key, $value);
-            }
-        }
-
-        return $query;
-    }
-
     /**
      * Apply all selected filters including relations.
      */
@@ -652,13 +641,68 @@ class DataTableComponent extends Component
         return $query;
     }
 
-    protected function applySorting($query)
+    protected function applySortingOldLegacy($query)
     {
         if ($this->sortField) {
             $query->orderBy($this->sortField, $this->sortDirection);
         }
 
         return $query;
+    }
+
+    /**
+     * Apply sorting to the query.
+     */
+    protected function applySorting($query)
+    {
+        if (blank($this->sortField)) {
+            return $query;
+        }
+
+        // Detect relation-based sorting, e.g. "roles.name"
+        if (str_contains($this->sortField, '.')) {
+            [$relation, $relColumn] = explode('.', $this->sortField, 2);
+
+            $modelInstance = is_string($this->model)
+                ? new $this->model
+                : $this->model;
+
+            // Ensure relation method exists
+            if (!method_exists($modelInstance, $relation)) {
+                return $query;
+            }
+
+            $relationInstance = $modelInstance->{$relation}();
+
+            // ✅ CASE 1: belongsTo / hasOne
+            if (in_array(class_basename($relationInstance), ['BelongsTo', 'HasOne'])) {
+                $relatedTable = $relationInstance->getRelated()->getTable();
+                $foreignKey = $relationInstance->getQualifiedForeignKeyName();
+                $ownerKey = $relationInstance->getQualifiedOwnerKeyName();
+
+                return $query->orderBy(
+                    \DB::raw("(SELECT {$relColumn} FROM {$relatedTable} WHERE {$relatedTable}.{$ownerKey} = {$foreignKey} LIMIT 1)"),
+                    $this->sortDirection
+                );
+            }
+
+            // ✅ CASE 2: hasMany / belongsToMany (use aggregate subquery)
+            if (in_array(class_basename($relationInstance), ['HasMany', 'BelongsToMany'])) {
+                $relatedTable = $relationInstance->getRelated()->getTable();
+                $foreignKey = $relationInstance->getQualifiedParentKeyName();
+                $localKey = $relationInstance->getQualifiedForeignKeyName() ?? $relationInstance->getQualifiedRelatedPivotKeyName();
+
+                return $query->orderBy(
+                    \DB::raw("(SELECT MAX({$relColumn}) FROM {$relatedTable} WHERE {$relatedTable}.{$foreignKey} = {$localKey})"),
+                    $this->sortDirection
+                );
+            }
+
+            return $query;
+        }
+
+        // ✅ Default sorting (base model columns)
+        return $query->orderBy($this->sortField, $this->sortDirection);
     }
 
     protected function applyPagination($query)
