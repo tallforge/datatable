@@ -28,6 +28,7 @@ class DataTableComponent extends Component
     public array $booleanColumnsState = [];
     public array $alignColumns = [];
     public array $statusColumns = [];
+    public array $relationColumns = [];
 
     public ?string $search = null;
     public bool $showSearch = false;
@@ -71,6 +72,7 @@ class DataTableComponent extends Component
         $booleanColumns = [],
         $alignColumns = [],
         $statusColumns = [],
+        $relationColumns = [],
 
         $showSearch = null,
         $searchPlaceholder = null,
@@ -103,6 +105,7 @@ class DataTableComponent extends Component
         $this->booleanColumns = $booleanColumns ?? [];
         $this->alignColumns = $alignColumns ?? [];
         $this->statusColumns = $statusColumns ?? [];
+        $this->relationColumns = $relationColumns ?? [];
 
         $this->showSearch = $showSearch ?? config('tallforge.datatable.search.show');
         $this->searchPlaceholder = $searchPlaceholder ?? config('tallforge.datatable.search.placeholder');
@@ -494,6 +497,49 @@ class DataTableComponent extends Component
 
         return $query;
     }
+
+    protected function applyFilters($query)
+    {
+        foreach ($this->selectedFilters as $key => $value) {
+            if ($value) {
+                $query->where($key, $value);
+            }
+        }
+
+        return $query;
+    }
+
+    protected function applySorting($query)
+    {
+        if ($this->sortField) {
+            $query->orderBy($this->sortField, $this->sortDirection);
+        }
+
+        return $query;
+    }
+
+    protected function applyPagination($query)
+    {
+        if ($this->paginationMode === 'load-more') {
+            return $query->take($this->limit)->get();
+        } else {
+            return $query->paginate($this->perPage);
+        }
+    }
+
+    protected function applyBooleanColumnsState($rows)
+    {
+        if (!empty($this->booleanColumns)) {
+            foreach ($rows as $row) {
+                foreach ($this->booleanColumns as $column => $config) {
+                    $trueValue = $config['true'] ?? 1;
+                    $this->booleanColumnsState[$row->id][$column] = $row->$column == $trueValue;
+                }
+            }
+        }
+
+        return $rows;
+    }
     
     public function loadData()
     {
@@ -505,43 +551,17 @@ class DataTableComponent extends Component
         // Apply search (new)
         $query = $this->applySearch($query);
 
-        // // Apply search
-        // if ($this->search && count($this->selectedColumns)) {
-        //     $query->where(function ($q) {
-        //         foreach ($this->selectedColumns as $column) {
-        //             if (Schema::hasColumn((new $this->model)->getTable(), $column)) {
-        //                 $q->orWhere($column, 'like', "%{$this->search}%");
-        //             }
-        //         }
-        //     });
-        // }
-
         // Apply filters
-        foreach ($this->selectedFilters as $key => $value) {
-            if ($value) {
-                $query->where($key, $value);
-            }
-        }
+        $query = $this->applyFilters($query);
 
         // Apply sorting
-        if ($this->sortField) {
-            $query->orderBy($this->sortField, $this->sortDirection);
-        }
+        $query = $this->applySorting($query);
 
         // Apply pagination or load more
-        $rows = $this->paginationMode === 'load-more'
-            ? $query->take($this->limit)->get()
-            : $query->paginate($this->perPage);
+        $rows = $this->applyPagination($query);
 
         // Initialize boolean columns state
-        if (!empty($this->booleanColumns)) {
-            foreach ($rows as $row) {
-                foreach ($this->booleanColumns as $column => $config) {
-                    $trueValue = $config['true'] ?? 1;
-                    $this->booleanColumnsState[$row->id][$column] = $row->$column == $trueValue;
-                }
-            }
-        }
+        $rows = $this->applyBooleanColumnsState($rows);
 
         return $rows;
     }
