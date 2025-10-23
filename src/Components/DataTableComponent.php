@@ -577,45 +577,76 @@ class DataTableComponent extends Component
         return $query;
     }
 
+    /**
+     * Apply all selected filters including relations.
+     */
     public function applyFilters($query)
     {
-        foreach ($this->selectedFilters as $column => $value) {
+        foreach ($this->selectedFilters as $key => $value) {
             if (blank($value)) {
                 continue;
             }
 
-            // Detect relation-based filters, e.g. "addresses.city"
-            if (str_contains($column, '.')) {
-                [$relation, $relColumn] = explode('.', $column, 2);
+            // Case 1: Nested relation filters (e.g., ['addresses' => ['city' => 'Mumbai']])
+            if (is_array($value)) {
+                foreach ($value as $relColumn => $relValue) {
+                    if (blank($relValue)) continue;
 
-                // Ensure relation method exists on model
-                if (method_exists($this->model, $relation) || method_exists(new $this->model, $relation)) {
-                    $query->whereHas($relation, function ($q) use ($relColumn, $value) {
-                        $q->where($relColumn, $value);
-                    });
+                    $relation = $key;
+                    try {
+                        $modelInstance = is_string($this->model)
+                            ? new $this->model
+                            : $this->model;
+
+                        if (method_exists($modelInstance, $relation)) {
+                            $query->whereHas($relation, function ($q) use ($relColumn, $relValue) {
+                                $q->where($relColumn, $relValue);
+                            });
+                        } else {
+                            \Log::warning("Relation '{$relation}' not found on model " . get_class($modelInstance));
+                        }
+                    } catch (\Throwable $e) {
+                        \Log::error("Relation filter failed for {$relation}.{$relColumn}: {$e->getMessage()}");
+                    }
                 }
-
                 continue;
             }
 
-            // Handle relation filters (e.g., addresses.city)
-            // if (str_contains($column, '.')) {
-            //     [$relation, $relColumn] = explode('.', $column, 2);
-            //     $query->whereHas($relation, function ($q) use ($relColumn, $value) {
-            //         $q->where($relColumn, $value);
-            //     });
-            //     continue;
-            // }
+            // Case 2: Flat relation filters (e.g., 'addresses.city' => 'Mumbai')
+            if (str_contains($key, '.')) {
+                [$relation, $relColumn] = explode('.', $key, 2);
 
-            // Handle boolean filters
-            // if (isset($this->booleanFilters[$column])) {
+                try {
+                    $modelInstance = is_string($this->model)
+                        ? new $this->model
+                        : $this->model;
+
+                    if (method_exists($modelInstance, $relation)) {
+                        $query->whereHas($relation, function ($q) use ($relColumn, $value) {
+                            $q->where($relColumn, $value);
+                        });
+                    } else {
+                        \Log::warning("Relation '{$relation}' not found on model " . get_class($modelInstance));
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error("Relation filter failed for {$relation}.{$relColumn}: {$e->getMessage()}");
+                }
+                continue;
+            }
+
+            // Case 3: Boolean filters
+            // if (isset($this->booleanFilters[$key])) {
             //     $trueValues = ['1', 1, true, 'true', 'yes', 'Y'];
-            //     $query->where($column, in_array($value, $trueValues) ? 'Y' : 'N');
+            //     $query->where($key, in_array($value, $trueValues) ? 'Y' : 'N');
             //     continue;
             // }
 
-            // Handle normal filters
-            $query->where($column, $value);
+            // Case 4: Normal filters
+            try {
+                $query->where($key, $value);
+            } catch (\Throwable $e) {
+                \Log::warning("Filter failed on {$key}: {$e->getMessage()}");
+            }
         }
 
         return $query;
