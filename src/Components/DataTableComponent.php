@@ -382,6 +382,11 @@ class DataTableComponent extends Component
             $this->sortDirection = 'asc';
         }
 
+        \Log::info('Sort check', [
+            'sortField' => $this->sortField,
+            'sortDirection' => $this->sortDirection,
+        ]);
+
         $this->resetPage();
     }
 
@@ -655,6 +660,13 @@ class DataTableComponent extends Component
      */
     protected function applySorting($query)
     {
+        if ($this->sortField && !str_contains($this->sortField, '.')) {
+            $query->orderBy($this->sortField, $this->sortDirection);
+            \Log::info("Sorting by base field {$this->sortField}");
+            return $query;
+        }
+
+        
         if (blank($this->sortField)) {
             return $query;
         }
