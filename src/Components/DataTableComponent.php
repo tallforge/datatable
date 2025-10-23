@@ -102,7 +102,7 @@ class DataTableComponent extends Component
         $this->columns = $columns ?: $this->resolveColumns();
         $this->selectedColumns = $selectedColumns ?: $this->columns;
         $this->relationColumns = $relationColumns ?? [];
-        
+
         $this->columnLabels = $columnLabels;
         $this->booleanColumns = $booleanColumns ?? [];
         $this->alignColumns = $alignColumns ?? [];
@@ -110,6 +110,7 @@ class DataTableComponent extends Component
 
         $this->showSearch = $showSearch ?? config('tallforge.datatable.search.show');
         $this->searchPlaceholder = $searchPlaceholder ?? config('tallforge.datatable.search.placeholder');
+
         $this->filters = $filters;
         $this->filterLabels = $filterLabels;
         $this->booleanFilters = $booleanFilters;
@@ -240,7 +241,7 @@ class DataTableComponent extends Component
      *
      * @return void
      */
-    public function loadDynamicFilters()
+    public function loadDynamicFiltersOldLegacy()
     {
         foreach ($this->filters as $col => $config) {
             // Dynamic from base/self model
@@ -276,6 +277,117 @@ class DataTableComponent extends Component
                     ->orderBy($config['label'])
                     ->pluck($config['label'], $config['key'])
                     ->toArray();
+            }
+        }
+    }
+
+    /**
+     * Load dynamic filters for the column of data table.
+     *
+     * Supports:
+     * - 'self'                     → Distinct values from base model
+     * - ['model'=>..., 'key'=>...] → External model source
+     * - 'relation' or ['type'=>'relation'] → Distinct values from related model
+     *
+     * @return void
+     */
+    public function loadDynamicFilters()
+    {
+        foreach ($this->filters as $col => $config) {
+
+            // ------------------------------------------
+            // CASE 1: Dynamic from base/self model
+            // ------------------------------------------
+            if ($config === 'self') {
+                $this->filters[$col] = $this->model::query()
+                    ->select($col)
+                    ->distinct()
+                    ->orderBy($col)
+                    ->pluck($col)
+                    ->filter() // remove null/empty
+                    ->toArray();
+
+                continue;
+            }
+
+            // ------------------------------------------
+            // CASE 2: Dynamic from external model
+            // ------------------------------------------
+            if (is_array($config) && isset($config['model'], $config['key'], $config['label'])) {
+                $query = $config['model']::query();
+
+                // Optional where conditions
+                if (isset($config['where']) && is_array($config['where'])) {
+                    foreach ($config['where'] as $condition) {
+                        if (count($condition) === 3) {
+                            [$column, $operator, $value] = $condition;
+                            $query->where($column, $operator, $value);
+                        } elseif (count($condition) === 2) {
+                            [$column, $value] = $condition;
+                            $query->where($column, $value);
+                        }
+                    }
+                }
+
+                $this->filters[$col] = $query
+                    ->orderBy($config['label'])
+                    ->pluck($config['label'], $config['key'])
+                    ->toArray();
+
+                continue;
+            }
+
+            // ------------------------------------------
+            // CASE 3: Dynamic from relation (NEW)
+            // ------------------------------------------
+            if ($config === 'relation' || (is_array($config) && ($config['type'] ?? null) === 'relation')) {
+
+                // Detect relation + column
+                if (! str_contains($col, '.')) {
+                    continue; // invalid format
+                }
+
+                [$relation, $relCol] = explode('.', $col, 2);
+
+                $modelClass = $this->model;
+                $instance = new $modelClass;
+
+                // If developer provided an override model, use it
+                $relatedModel = $config['model'] ?? optional($instance->{$relation}())->getModel()::class ?? null;
+
+                if (! $relatedModel || ! class_exists($relatedModel)) {
+                    continue;
+                }
+
+                $relatedQuery = $relatedModel::query();
+
+                // Optional where conditions
+                if (isset($config['where']) && is_array($config['where'])) {
+                    foreach ($config['where'] as $condition) {
+                        if (count($condition) === 3) {
+                            [$column, $operator, $value] = $condition;
+                            $relatedQuery->where($column, $operator, $value);
+                        } elseif (count($condition) === 2) {
+                            [$column, $value] = $condition;
+                            $relatedQuery->where($column, $value);
+                        }
+                    }
+                }
+
+                // Determine key/label fields
+                $keyField = $config['key'] ?? $relCol;
+                $labelField = $config['label'] ?? $relCol;
+
+                // Generate options: pluck distinct values from relation model
+                $options = $relatedQuery
+                    ->select($labelField)
+                    ->distinct()
+                    ->orderBy($labelField)
+                    ->pluck($labelField, $keyField)
+                    ->filter()
+                    ->toArray();
+
+                $this->filters[$col] = $options;
             }
         }
     }
