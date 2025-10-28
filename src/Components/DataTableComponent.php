@@ -14,7 +14,6 @@ use TallForge\DataTable\Traits\{
 };
 
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Collection;
@@ -36,6 +35,14 @@ class DataTableComponent extends Component
     public array $alignColumns = [];
     public array $statusColumns = [];
     public array $relationColumns = [];
+
+    /**
+     * The columns to include in exports.
+     * If not provided, falls back to selectedColumns or columns.
+     *
+     * @var array|null
+     */
+    public ?array $exportColumns = null;
 
     public ?string $search = null;
     public bool $showSearch = false;
@@ -80,6 +87,7 @@ class DataTableComponent extends Component
         $alignColumns = [],
         $statusColumns = [],
         $relationColumns = [],
+        $exportColumns = [],
 
         $showSearch = null,
         $searchPlaceholder = null,
@@ -109,6 +117,7 @@ class DataTableComponent extends Component
         $this->columns = $columns ?: $this->resolveColumns();
         $this->selectedColumns = $selectedColumns ?: $this->columns;
         $this->relationColumns = $relationColumns ?? [];
+        $this->exportColumns = $exportColumns ?: $this->selectedColumns;
 
         $this->columnLabels = $columnLabels;
         $this->booleanColumns = $booleanColumns ?? [];
@@ -737,7 +746,7 @@ class DataTableComponent extends Component
         return $rows;
     }
 
-    protected function exportCsv($rows): StreamedResponse
+    protected function exportCsv($rows, array $exportColumns): StreamedResponse
     {
         $filename = 'export_' . now()->format('Ymd_His') . '.csv';
 
@@ -746,17 +755,17 @@ class DataTableComponent extends Component
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $selectedColumns = $this->selectedColumns ?? $this->columns;
+        // $selectedColumns = $this->selectedColumns ?? $this->columns;
 
-        return Response::stream(function () use ($rows, $selectedColumns) {
+        return Response::stream(function () use ($rows, $exportColumns) {
             $handle = fopen('php://output', 'w');
 
             // Header row
-            fputcsv($handle, array_map(fn($c) => $this->getColumnLabel($c), $selectedColumns));
+            fputcsv($handle, array_map(fn($c) => $this->getColumnLabel($c), $exportColumns));
 
             foreach ($rows as $row) {
                 $line = [];
-                foreach ($selectedColumns as $col) {
+                foreach ($exportColumns as $col) {
                     if ($this->isRelationColumn($col)) {
                         [$relation, $relCol] = explode('.', $col, 2);
                         $line[] = $this->formatRelationValue($row, $relation, $relCol);
@@ -771,13 +780,13 @@ class DataTableComponent extends Component
         }, 200, $headers);
     }
 
-    protected function exportJson($rows): StreamedResponse
+    protected function exportJson($rows, array $exportColumns): StreamedResponse
     {
         $filename = 'export_' . now()->format('Ymd_His') . '.json';
 
-        $data = $rows->map(function ($row) {
+        $data = $rows->map(function ($row) use ($exportColumns) {
             $item = [];
-            foreach ($this->selectedColumns as $col) {
+            foreach ($exportColumns as $col) {
                 if ($this->isRelationColumn($col)) {
                     [$relation, $relCol] = explode('.', $col, 2);
                     $item[$col] = $this->formatRelationValue($row, $relation, $relCol);
@@ -797,7 +806,7 @@ class DataTableComponent extends Component
     {
         $query = $this->model::query();
 
-        // Apply same pipeline
+        // Apply filters, search, sorting, relations
         $query = $this->eagerLoadRelations($query);
         $query = $this->applySearch($query);
         $query = $this->applyFilters($query);
@@ -807,22 +816,25 @@ class DataTableComponent extends Component
 
         $rows = $this->applyBooleanColumnsState($rows);
 
+        // Determine which columns to export
+        $exportColumns = $this->exportColumns ?? $this->selectedColumns ?? $this->columns;
+
         // Determine export method
         return match ($format) {
-            'csv' => $this->exportCsv($rows),
-            'json' => $this->exportJson($rows),
-            'xlsx' => method_exists($this, 'exportXlsx') 
-                ? $this->exportXlsx($rows) 
+            'csv' => $this->exportCsv($rows, $exportColumns),
+            'json' => $this->exportJson($rows, $exportColumns),
+            'xlsx' => method_exists($this, 'exportXlsx')
+                ? $this->exportXlsx($rows, $exportColumns)
                 : abort(500, 'XLSX export not supported. Install maatwebsite/excel.'),
             default => abort(400, 'Unsupported export format'),
         };
     }
 
-    protected function exportXlsx($rows)
+    protected function exportXlsx($rows, array $exportColumns)
     {
-        $data = $rows->map(function ($row) {
+        $data = $rows->map(function ($row) use ($exportColumns) {
             $item = [];
-            foreach ($this->selectedColumns as $col) {
+            foreach ($exportColumns as $col) {
                 if ($this->isRelationColumn($col)) {
                     [$relation, $relCol] = explode('.', $col, 2);
                     $item[$col] = $this->formatRelationValue($row, $relation, $relCol);
