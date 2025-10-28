@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
 
 class DataTableComponent extends Component
@@ -802,6 +803,40 @@ class DataTableComponent extends Component
         }, $filename);
     }
 
+    protected function exportXlsx($rows, array $exportColumns)
+    {
+        if (!class_exists(Excel::class)) {
+            abort(500, 'Maatwebsite Excel not installed.');
+        }
+        
+        // Build dataset
+        $data = $rows->map(function ($row) use ($exportColumns) {
+            $item = [];
+            foreach ($exportColumns as $col) {
+                if ($this->isRelationColumn($col)) {
+                    [$relation, $relCol] = explode('.', $col, 2);
+                    $item[$col] = $this->formatRelationValue($row, $relation, $relCol);
+                } else {
+                    $item[$col] = data_get($row, $col);
+                }
+            }
+            return $item;
+        });
+
+        // Extract human-friendly column labels
+        $headers = array_map(fn($col) => $this->getColumnLabel($col), $exportColumns);
+
+        // Create a custom anonymous export class with headers + data
+        $export = new class($data, $headers) implements FromCollection, WithHeadings {
+            public function __construct(protected Collection $data, protected array $headers) {}
+            public function collection(): Collection { return $this->data; }
+            public function headings(): array { return $this->headers; }
+        };
+
+        // Download as XLSX
+        return Excel::download($export, 'export_' . now()->format('Ymd_His') . '.xlsx');
+    }
+
     public function export(string $format = 'csv')
     {
         $query = $this->model::query();
@@ -828,29 +863,6 @@ class DataTableComponent extends Component
                 : abort(500, 'XLSX export not supported. Install maatwebsite/excel.'),
             default => abort(400, 'Unsupported export format'),
         };
-    }
-
-    protected function exportXlsx($rows, array $exportColumns)
-    {
-        $data = $rows->map(function ($row) use ($exportColumns) {
-            $item = [];
-            foreach ($exportColumns as $col) {
-                if ($this->isRelationColumn($col)) {
-                    [$relation, $relCol] = explode('.', $col, 2);
-                    $item[$col] = $this->formatRelationValue($row, $relation, $relCol);
-                } else {
-                    $item[$col] = data_get($row, $col);
-                }
-            }
-            return $item;
-        });
-
-        $export = new class($data) implements FromCollection {
-            public function __construct(protected Collection $data) {}
-            public function collection(): Collection { return $this->data; }
-        };
-
-        return Excel::download($export, 'export_' . now()->format('Ymd_His') . '.xlsx');
     }
     
     public function loadData()
