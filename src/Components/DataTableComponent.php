@@ -13,6 +13,13 @@ use TallForge\DataTable\Traits\{
     WithRelations
 };
 
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\FromCollection;
+
 
 class DataTableComponent extends Component
 {
@@ -382,10 +389,10 @@ class DataTableComponent extends Component
             $this->sortDirection = 'asc';
         }
 
-        \Log::info('Sort check', [
-            'sortField' => $this->sortField,
-            'sortDirection' => $this->sortDirection,
-        ]);
+        // \Log::info('Sort check', [
+        //     'sortField' => $this->sortField,
+        //     'sortDirection' => $this->sortDirection,
+        // ]);
 
         $this->resetPage();
     }
@@ -646,27 +653,11 @@ class DataTableComponent extends Component
         return $query;
     }
 
-    protected function applySortingOldLegacy($query)
-    {
-        if ($this->sortField) {
-            $query->orderBy($this->sortField, $this->sortDirection);
-        }
-
-        return $query;
-    }
-
     /**
      * Apply sorting to the query.
      */
     protected function applySorting($query)
     {
-        if ($this->sortField && !str_contains($this->sortField, '.')) {
-            $query->orderBy($this->sortField, $this->sortDirection);
-            \Log::info("Sorting by base field {$this->sortField}");
-            return $query;
-        }
-
-        
         if (blank($this->sortField)) {
             return $query;
         }
@@ -686,7 +677,7 @@ class DataTableComponent extends Component
 
             $relationInstance = $modelInstance->{$relation}();
 
-            // ✅ CASE 1: belongsTo / hasOne
+            // CASE 1: belongsTo / hasOne
             if (in_array(class_basename($relationInstance), ['BelongsTo', 'HasOne'])) {
                 $relatedTable = $relationInstance->getRelated()->getTable();
                 $foreignKey = $relationInstance->getQualifiedForeignKeyName();
@@ -698,7 +689,7 @@ class DataTableComponent extends Component
                 );
             }
 
-            // ✅ CASE 2: hasMany / belongsToMany (use aggregate subquery)
+            // CASE 2: hasMany / belongsToMany (use aggregate subquery)
             if (in_array(class_basename($relationInstance), ['HasMany', 'BelongsToMany'])) {
                 $relatedTable = $relationInstance->getRelated()->getTable();
                 $foreignKey = $relationInstance->getQualifiedParentKeyName();
@@ -713,7 +704,13 @@ class DataTableComponent extends Component
             return $query;
         }
 
-        // ✅ Default sorting (base model columns)
+        if ($this->sortField && !str_contains($this->sortField, '.')) {
+            $query->orderBy($this->sortField, $this->sortDirection);
+            // \Log::info("Sorting by base field {$this->sortField}");
+            return $query;
+        }
+
+        // Default sorting (base model columns)
         return $query->orderBy($this->sortField, $this->sortDirection);
     }
 
@@ -738,6 +735,110 @@ class DataTableComponent extends Component
         }
 
         return $rows;
+    }
+
+    protected function exportCsv($rows): StreamedResponse
+    {
+        $filename = 'export_' . now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $selectedColumns = $this->selectedColumns ?? $this->columns;
+
+        return Response::stream(function () use ($rows, $selectedColumns) {
+            $handle = fopen('php://output', 'w');
+
+            // Header row
+            fputcsv($handle, array_map(fn($c) => $this->getColumnLabel($c), $selectedColumns));
+
+            foreach ($rows as $row) {
+                $line = [];
+                foreach ($selectedColumns as $col) {
+                    if ($this->isRelationColumn($col)) {
+                        [$relation, $relCol] = explode('.', $col, 2);
+                        $line[] = $this->formatRelationValue($row, $relation, $relCol);
+                    } else {
+                        $line[] = data_get($row, $col);
+                    }
+                }
+                fputcsv($handle, $line);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
+    }
+
+    protected function exportJson($rows): StreamedResponse
+    {
+        $filename = 'export_' . now()->format('Ymd_His') . '.json';
+
+        $data = $rows->map(function ($row) {
+            $item = [];
+            foreach ($this->selectedColumns as $col) {
+                if ($this->isRelationColumn($col)) {
+                    [$relation, $relCol] = explode('.', $col, 2);
+                    $item[$col] = $this->formatRelationValue($row, $relation, $relCol);
+                } else {
+                    $item[$col] = data_get($row, $col);
+                }
+            }
+            return $item;
+        });
+
+        return response()->streamDownload(function () use ($data) {
+            echo $data->toJson(JSON_PRETTY_PRINT);
+        }, $filename);
+    }
+
+    public function export(string $format = 'csv')
+    {
+        $query = $this->model::query();
+
+        // Apply same pipeline
+        $query = $this->eagerLoadRelations($query);
+        $query = $this->applySearch($query);
+        $query = $this->applyFilters($query);
+        $query = $this->applySorting($query);
+
+        $rows = $query->get();
+
+        $rows = $this->applyBooleanColumnsState($rows);
+
+        // Determine export method
+        return match ($format) {
+            'csv' => $this->exportCsv($rows),
+            'json' => $this->exportJson($rows),
+            'xlsx' => method_exists($this, 'exportXlsx') 
+                ? $this->exportXlsx($rows) 
+                : abort(500, 'XLSX export not supported. Install maatwebsite/excel.'),
+            default => abort(400, 'Unsupported export format'),
+        };
+    }
+
+    protected function exportXlsx($rows)
+    {
+        $data = $rows->map(function ($row) {
+            $item = [];
+            foreach ($this->selectedColumns as $col) {
+                if ($this->isRelationColumn($col)) {
+                    [$relation, $relCol] = explode('.', $col, 2);
+                    $item[$col] = $this->formatRelationValue($row, $relation, $relCol);
+                } else {
+                    $item[$col] = data_get($row, $col);
+                }
+            }
+            return $item;
+        });
+
+        $export = new class($data) implements FromCollection {
+            public function __construct(protected Collection $data) {}
+            public function collection(): Collection { return $this->data; }
+        };
+
+        return Excel::download($export, 'export_' . now()->format('Ymd_His') . '.xlsx');
     }
     
     public function loadData()
