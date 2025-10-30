@@ -716,7 +716,7 @@ class DataTableComponent extends Component
 
         if ($this->sortField && !str_contains($this->sortField, '.')) {
             $query->orderBy($this->sortField, $this->sortDirection);
-            // \Log::info("Sorting by base field {$this->sortField}");
+            \Log::info("Sorting by base field {$this->sortField}");
             return $query;
         }
 
