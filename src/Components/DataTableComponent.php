@@ -3,6 +3,7 @@
 namespace TallForge\DataTable\Components;
 
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Livewire\{
     Component,
     WithPagination
@@ -714,14 +715,50 @@ class DataTableComponent extends Component
             return $query;
         }
 
+        // Base-field sorting (no relation)
         if ($this->sortField && !str_contains($this->sortField, '.')) {
-            $query->orderBy($this->sortField, $this->sortDirection);
-            \Log::info("Sorting by base field {$this->sortField}");
+            // \Log::info("Sorting by base field {$this->sortField}");
+
+            // If it's a real DB column, sort normally
+            if ($this->isDatabaseColumn($this->sortField)) {
+                $query->orderBy($this->sortField, $this->sortDirection);
+                return $query;
+            }
+
+            // Computed fields (e.g., 'name' on User → CONCAT first/middle/last)
+            $query = $this->applyComputedSorting($query);
             return $query;
         }
 
         // Default sorting (base model columns)
         return $query->orderBy($this->sortField, $this->sortDirection);
+    }
+
+    /**
+     * Apply sorting for computed/non-DB fields.
+     */
+    protected function applyComputedSorting($query)
+    {
+        $field = $this->sortField;
+
+        // Not a DB column → try computed sorting via model scope:
+        // e.g. sortField 'name' → scopeOrderByName($direction) → $query->orderByName($direction)
+        try {
+            $modelClass = $this->model;
+            $modelInstance = is_string($modelClass) ? new $modelClass : $modelClass;
+
+            $scope = 'orderBy' . Str::studly($this->sortField);   // orderByName
+            $scopeMethod = 'scope' . Str::studly($scope);         // scopeOrderByName
+
+            if (method_exists($modelInstance, $scopeMethod)) {
+                return $query->$scope($this->sortDirection);
+            }
+        } catch (\Throwable $e) {
+            // Swallow and skip sorting if scope is missing/invalid
+        }
+
+        // Unknown computed field: skip sorting instead of erroring on a non-existent column
+        return $query;
     }
 
     protected function applyPagination($query)
