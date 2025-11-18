@@ -8,6 +8,11 @@ use TallForge\DataTable\Components\DataTableComponent;
 
 class DataTableServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
     public function register(): void
     {
         $this->mergeConfigFrom(
@@ -16,6 +21,11 @@ class DataTableServiceProvider extends ServiceProvider
         );
     }
 
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
     public function boot(): void
     {
         // Load published views if they exist

@@ -413,7 +413,7 @@ class DataTableComponent extends Component
         // relation column label takes precedence
         $relLabel = $this->getRelationColumnLabel($col);
         if ($relLabel) return $relLabel;
-        
+
         // explicit column labels or fallback
         return $this->columnLabels[$col] ?? ucfirst(str_replace('_', ' ', $col));
     }
@@ -845,7 +845,7 @@ class DataTableComponent extends Component
         if (!class_exists(Excel::class)) {
             abort(500, 'Maatwebsite Excel not installed.');
         }
-        
+
         // Build dataset
         $data = $rows->map(function ($row) use ($exportColumns) {
             $item = [];
@@ -901,7 +901,7 @@ class DataTableComponent extends Component
             default => abort(400, 'Unsupported export format'),
         };
     }
-    
+
     public function loadData()
     {
         $query = $this->model::query();

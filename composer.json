@@ -6,7 +6,8 @@
         "package",
         "laravel",
         "livewire",
-        "tallstack"
+        "tallstack",
+        "datatable"
     ],
     "type": "library",
     "license": "MIT",
@@ -18,7 +19,7 @@
     ],
     "require": {
         "php": ">=8.2",
-        "laravel/framework": "^11.0",
+        "laravel/framework": "^12.0",
         "livewire/livewire": "^3.0"
     },
     "require-dev": {

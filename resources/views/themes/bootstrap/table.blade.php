@@ -1,5 +1,10 @@
 <div>
 
+    @php
+        // dd($showSearch, $showCreate, $showReset, $paginationMode, $perPageOptions)
+        // dd($columns, $selectedColumns)
+    @endphp
+
     <!-- ToolBar -->
     <div class="d-flex justify-content-between align-items-center mb-3">
 
@@ -137,10 +142,6 @@
                     </td>
                     @foreach($columns as $col)
                         @if(in_array($col, $selectedColumns))
-                            @php
-                                $rel = $relationColumnsFlat[$col]['relation'];
-                                $relCol = $relationColumnsFlat[$col]['column'];
-                            @endphp
                             <td class="text-{{ $this->getAlignColumn($col) }}"
                                 wire:key='rowCol-{{ $loop->parent->index }}-{{ $loop->index }}'>
 
