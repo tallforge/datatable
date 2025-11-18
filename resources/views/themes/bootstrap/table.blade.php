@@ -1,10 +1,5 @@
 <div>
 
-    @php
-        // dd($showSearch, $showCreate, $showReset, $paginationMode, $perPageOptions)
-        // dd($columns, $selectedColumns)
-    @endphp
-
     <!-- ToolBar -->
     <div class="d-flex justify-content-between align-items-center mb-3">
 
